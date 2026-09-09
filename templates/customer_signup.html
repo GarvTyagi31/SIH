@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SahakarConnect - Citizen Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
+        body { 
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', sans-serif;
+            background-color: #F8FAFC;
+        }
+        .tricolor-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #FF9933 0%, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%, #138808 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-slate-900">
+    <div>
+        <div class="tricolor-bar"></div>
+
+        <header class="bg-white border-b border-slate-200 py-3 px-4 sm:px-6 shadow-sm">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <a href="/" class="flex items-center space-x-3">
+                    <img src="/static/logo.svg" onerror="this.src='/static/logo.png'" alt="Sahakar Emblem" class="w-10 h-10 object-contain">
+                    <div>
+                        <span class="text-xl font-black text-slate-900">Sahakar<span class="text-amber-600">Connect</span></span>
+                        <span class="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-300 ml-1" data-i18n="nav_customer">Citizen Portal</span>
+                    </div>
+                </a>
+                <div class="flex items-center space-x-3">
+                    <select id="globalLangSelect" onchange="applyLanguage(this.value)" class="bg-slate-100 text-slate-800 text-xs font-bold rounded px-2 py-1 border border-slate-300 focus:outline-none cursor-pointer">
+                        <option value="en">English (EN)</option>
+                        <option value="hi">हिन्दी (Hindi)</option>
+                        <option value="bho">भोजपुरी (Bhojpuri)</option>
+                        <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                        <option value="bn">বাংলা (Bengali)</option>
+                        <option value="gu">ગુજરાતી (Gujarati)</option>
+                        <option value="mr">मराठी (Marathi)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                    </select>
+                    <a href="/" class="text-xs font-bold text-slate-600 hover:text-slate-900">← <span data-i18n="nav_home">Home</span></a>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-lg mx-auto p-4 sm:p-6 mt-6 space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-md border border-slate-300 space-y-5">
+                <div class="text-center space-y-1">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-amber-50 text-amber-700 text-xl font-bold mb-1 border border-amber-200">
+                        👤
+                    </div>
+                    <h2 class="text-xl font-black text-slate-900">Create Citizen Account</h2>
+                    <p class="text-xs text-slate-500">Register as a Ghaziabad resident to book verified cooperative home services</p>
+                </div>
+
+                <div id="signupAlertBox" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
+
+                <form onsubmit="handleCustomerSignup(event)" class="space-y-3.5 text-xs text-slate-700">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1" data-i18n="reg_full_name">Full Name</label>
+                        <input type="text" id="regFullName" required placeholder="e.g. Rahul Verma" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1" data-i18n="reg_phone">Mobile Phone Number (for dispatch SMS)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 font-bold">+91</span>
+                            <input type="tel" id="regPhone" required placeholder="9811000000" class="w-full pl-12 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs font-bold">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Email Address (Optional for invoices)</label>
+                        <input type="email" id="regEmail" placeholder="rahul@example.com" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1" data-i18n="locality_label">Ghaziabad Sector / Locality</label>
+                            <select id="regLocality" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs">
+                                <option value="Indirapuram">Indirapuram</option>
+                                <option value="Vaishali">Vaishali</option>
+                                <option value="Vasundhara">Vasundhara</option>
+                                <option value="Raj Nagar Extension">Raj Nagar Extension</option>
+                                <option value="Raj Nagar">Raj Nagar</option>
+                                <option value="Kavi Nagar">Kavi Nagar</option>
+                                <option value="Crossings Republik">Crossings Republik</option>
+                                <option value="Kaushambi">Kaushambi</option>
+                                <option value="Govindpuram">Govindpuram</option>
+                                <option value="Sahibabad">Sahibabad</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Account Password</label>
+                            <div class="relative">
+                                <input type="password" id="regPassword" required placeholder="Create password" class="w-full pl-3 pr-9 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs">
+                                <button type="button" onclick="togglePasswordVisibility('regPassword', this)" aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                                    <i class="fa-solid fa-eye text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Complete Flat / House Address</label>
+                        <textarea id="regAddress" rows="2" placeholder="e.g. Flat 302, Tower B, Shipra Sun City, Indirapuram" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs"></textarea>
+                    </div>
+
+                    <button type="submit" id="signupBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3 rounded-lg shadow transition">
+                        Register Citizen Account
+                    </button>
+                </form>
+
+                <div class="pt-3 border-t border-slate-200 text-center space-y-1 text-xs">
+                    <p class="text-slate-600">Already registered?</p>
+                    <a href="/customer/login" class="font-bold text-amber-700 hover:underline">
+                        Sign In with Mobile Number →
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="bg-slate-950 text-slate-400 text-xs py-4 text-center border-t border-slate-800">
+        <p>© 2026 SahakarConnect Cooperative Federation • Government of Uttar Pradesh</p>
+    </footer>
+
+    <script src="/static/js/translations.js"></script>
+    <script>
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash text-xs';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye text-xs';
+            }
+        }
+
+        async function handleCustomerSignup(e) {
+            e.preventDefault();
+            const btn = document.getElementById('signupBtn');
+            const alertBox = document.getElementById('signupAlertBox');
+
+            const payload = {
+                full_name: document.getElementById('regFullName').value.trim(),
+                phone: document.getElementById('regPhone').value.trim(),
+                email: document.getElementById('regEmail').value.trim(),
+                locality: document.getElementById('regLocality').value,
+                password: document.getElementById('regPassword').value.trim(),
+                address_text: document.getElementById('regAddress').value.trim()
+            };
+
+            btn.disabled = true;
+            btn.innerText = 'Creating Account...';
+            alertBox.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/auth/customer/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                let data = null;
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    data = await res.json();
+                }
+
+                if (res.ok && data && data.status === 'success') {
+                    localStorage.setItem('sahakar_citizen', JSON.stringify(data.user));
+                    alertBox.className = 'p-3 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300';
+                    alertBox.innerText = 'Account created successfully! Redirecting to Citizen Portal...';
+                    alertBox.classList.remove('hidden');
+                    setTimeout(() => {
+                        window.location.href = '/customer';
+                    }, 1000);
+                } else {
+                    alertBox.className = 'p-3 rounded-lg text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-300';
+                    const errorMsg = (data && (data.detail || data.message)) || `Server Error (${res.status}). Please ensure python run.py is running.`;
+                    alertBox.innerText = errorMsg;
+                    alertBox.classList.remove('hidden');
+                }
+            } catch(err) {
+                console.error("Signup error:", err);
+                alertBox.className = 'p-3 rounded-lg text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-300';
+                alertBox.innerText = 'Connection error. Please ensure the backend server is running with "python run.py".';
+                alertBox.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Register Citizen Account';
+            }
+        }
+    </script>
+</body>
+</html>

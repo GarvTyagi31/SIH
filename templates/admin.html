@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SahakarConnect - Federation Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+        body { 
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', 'Inter', sans-serif;
+            background-color: #F8FAFC;
+        }
+        .tricolor-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #FF9933 0%, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%, #138808 100%);
+        }
+        /* Leaflet Z-Index and Isolation Constraint (Prevents map scrolling misbehavior) */
+        #adminLiveMap {
+            position: relative;
+            z-index: 0 !important;
+            isolation: isolate;
+            overflow: hidden;
+        }
+        .leaflet-pane {
+            z-index: 10 !important;
+        }
+        .leaflet-top, .leaflet-bottom {
+            z-index: 20 !important;
+        }
+    </style>
+</head>
+<body class="text-slate-900 antialiased min-h-screen">
+    
+    <!-- Tricolor Bar -->
+    <div class="tricolor-bar"></div>
+
+    <!-- Top Admin Header -->
+    <header class="bg-slate-900 text-white px-4 sm:px-6 py-3 shadow sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            
+            <a href="/" class="flex items-center space-x-3">
+                <img src="/static/logo.svg" onerror="this.src='/static/logo.png'" alt="Sahakar Emblem" class="w-10 h-10 object-contain">
+                <div>
+                    <h1 class="text-sm sm:text-base font-bold text-white tracking-tight">
+                        SahakarConnect <span class="text-amber-400">Federation Admin</span>
+                    </h1>
+                    <p class="text-[10px] text-slate-400">Ghaziabad District Artisans & Household Workers Cooperative Federation</p>
+                </div>
+            </a>
+            
+            <!-- Language Selector & Verified Badge -->
+            <div class="flex items-center space-x-3 flex-wrap">
+                <select id="globalLangSelect" onchange="applyLanguage(this.value)" class="bg-slate-800 text-amber-300 text-xs font-bold rounded px-2 py-1 border border-slate-700 focus:outline-none cursor-pointer">
+                    <option value="en">English (EN)</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="bho">भोजपुरी (Bhojpuri)</option>
+                    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                    <option value="bn">বাংলা (Bengali)</option>
+                    <option value="gu">ગુજરાતી (Gujarati)</option>
+                    <option value="mr">मराठी (Marathi)</option>
+                    <option value="ta">தமிழ் (Tamil)</option>
+                    <option value="te">తెలుగు (Telugu)</option>
+                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                </select>
+
+                <span id="ledgerBadge" class="text-[11px] bg-slate-800 text-emerald-300 border border-emerald-700 px-2.5 py-1 rounded font-semibold flex items-center">
+                    <i class="fa-solid fa-circle-check mr-1 text-emerald-400"></i>
+                    <span data-i18n="ledger_status">Verified Official Wage Registry</span>
+                </span>
+                
+                <a href="/" class="text-xs text-slate-300 hover:text-white font-semibold transition">Back to Site</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        
+        <!-- 4 Metric KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1">
+                <span class="text-[11px] font-bold text-slate-500 uppercase" data-i18n="active_workers_kpi">Active Verified Artisans</span>
+                <p id="kpiWorkers" class="text-2xl font-black text-slate-900">--</p>
+                <p class="text-[10px] text-emerald-700 font-semibold">Available in Ghaziabad sectors</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1">
+                <span class="text-[11px] font-bold text-slate-500 uppercase" data-i18n="pending_kpi">Pending Registrations</span>
+                <p id="kpiPending" class="text-2xl font-black text-amber-600">--</p>
+                <p class="text-[10px] text-amber-700 font-semibold">Awaiting federation audit</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1">
+                <span class="text-[11px] font-bold text-slate-500 uppercase" data-i18n="total_jobs_kpi">Total Completed Bookings</span>
+                <p id="kpiBookings" class="text-2xl font-black text-slate-900">--</p>
+                <p class="text-[10px] text-slate-500 font-semibold">85% direct wage payout</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1">
+                <span class="text-[11px] font-bold text-slate-500 uppercase" data-i18n="welfare_kpi">Artisan Welfare & Insurance Pool</span>
+                <p id="kpiWelfare" class="text-2xl font-black text-emerald-700">₹0.00</p>
+                <p class="text-[10px] text-emerald-800 font-semibold">3% reserved for artisan security</p>
+            </div>
+        </div>
+
+        <!-- Section 1: Verification Queue & Live GIS Dispatch Map (Strictly Contained) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Worker Verification Queue -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Artisan Verification Queue</h3>
+                    <span class="text-[11px] text-slate-400 font-medium">Skill India & Document Audit</span>
+                </div>
+                <div class="overflow-x-auto max-h-72">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="p-2.5">Artisan</th>
+                                <th class="p-2.5">Society</th>
+                                <th class="p-2.5">Document</th>
+                                <th class="p-2.5 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="verificationQueueBody" class="divide-y divide-slate-100 font-medium">
+                            <tr><td colspan="4" class="text-center py-4 text-slate-400">Loading queue...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Live GIS Dispatch Map (Fixed container bounds) -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700" data-i18n="live_map_title">Ghaziabad District Service Map</h3>
+                    <span class="text-[11px] font-bold text-emerald-700">Active Sector Nodes</span>
+                </div>
+                <div id="adminLiveMap" class="h-72 w-full rounded-xl border border-slate-200"></div>
+            </div>
+
+        </div>
+
+        <!-- Section 2: Demand & Workforce Allocation -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-wrap justify-between items-center gap-2">
+                <div>
+                    <h3 class="text-sm font-bold uppercase text-slate-900" data-i18n="forecast_title">
+                        Seasonal Demand & Workforce Allocation Analysis
+                    </h3>
+                    <p class="text-xs text-slate-500">7-Day service load projections across Ghaziabad sectors</p>
+                </div>
+                <span class="text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded">
+                    Forecast Active
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-8 h-64">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+                <div class="lg:col-span-4 space-y-2 max-h-64 overflow-y-auto pr-1">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase">Sector Demand Multipliers</h4>
+                    <div id="localitySurgeList" class="space-y-1.5 text-xs font-medium"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Official Wage Audit Log -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-bold uppercase text-slate-900" data-i18n="audit_title">
+                        Official Citizen & Artisan Wage Audit Registry
+                    </h3>
+                    <p class="text-xs text-slate-500">Official record of 85% direct worker payouts, 12% platform ops and 3% welfare allocations</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-80">
+                <table class="w-full text-left text-xs font-mono">
+                    <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="p-2.5">Date & Time</th>
+                            <th class="p-2.5">Booking Ref</th>
+                            <th class="p-2.5 text-right">Worker Payout (85%)</th>
+                            <th class="p-2.5 text-right">Platform Ops (12%)</th>
+                            <th class="p-2.5 text-right">Welfare Fund (3%)</th>
+                            <th class="p-2.5 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledgerTableBody" class="divide-y divide-slate-100">
+                        <tr><td colspan="6" class="text-center py-4 font-sans text-slate-400">Loading audit records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- SCRIPT -->
+    <script src="/static/js/translations.js"></script>
+    <script>
+
+        function escapeHtml(str) {
+            if (!str && str !== 0) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    
+        let adminMap;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchMetrics();
+            fetchVerificationQueue();
+            initAdminMap();
+            fetchForecastData();
+            fetchAuditLedger();
+            window.addEventListener('resize', () => {
+                if (adminMap) adminMap.invalidateSize();
+            });
+        });
+
+        async function fetchMetrics() {
+            try {
+                const res = await fetch('/api/admin/metrics');
+                const data = await res.json();
+                document.getElementById('kpiWorkers').innerText = data.active_verified_workers;
+                document.getElementById('kpiPending').innerText = data.pending_verifications;
+                document.getElementById('kpiBookings').innerText = data.total_dispatches;
+                document.getElementById('kpiWelfare').innerText = `₹${data.welfare_balance_inr.toFixed(2)}`;
+            } catch(e) {
+                console.error("Metric err", e);
+            }
+        }
+
+        async function fetchVerificationQueue() {
+            try {
+                const res = await fetch('/api/admin/verification-queue');
+                const data = await res.json();
+                const tbody = document.getElementById('verificationQueueBody');
+                tbody.innerHTML = '';
+
+                if (!data.queue || data.queue.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-400">All registered artisans are verified ✅</td></tr>';
+                    return;
+                }
+
+                data.queue.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50';
+                    tr.innerHTML = `
+                        <td class="p-2.5">
+                            <p class="font-bold text-slate-900">${item.full_name}</p>
+                            <p class="text-[10px] text-slate-500">${item.qualification}</p>
+                        </td>
+                        <td class="p-2.5 text-slate-600">${item.society_name}</td>
+                        <td class="p-2.5">
+                            <a href="${item.id_doc_url}" target="_blank" class="text-amber-700 hover:underline font-bold text-[11px] flex items-center">
+                                <i class="fa-solid fa-file-pdf mr-1 text-red-600"></i> View Doc
+                            </a>
+                        </td>
+                        <td class="p-2.5 text-center space-x-1">
+                            <button onclick="verifyWorkerAction('${item.worker_id}', 'approve')" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10px] px-2.5 py-1 rounded">Approve</button>
+                            <button onclick="verifyWorkerAction('${item.worker_id}', 'reject')" class="bg-rose-700 hover:bg-rose-800 text-white font-bold text-[10px] px-2.5 py-1 rounded">Reject</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) {
+                console.error("Queue err", e);
+            }
+        }
+
+        async function verifyWorkerAction(workerId, action) {
+            const res = await fetch(`/api/admin/verify-worker/${workerId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                fetchMetrics();
+                fetchVerificationQueue();
+            }
+        }
+
+        async function initAdminMap() {
+            adminMap = L.map('adminLiveMap', { attributionControl: false }).setView([28.6692, 77.4538], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '© OpenStreetMap'
+            }).addTo(adminMap);
+
+            try {
+                const res = await fetch('/api/admin/live-map-data');
+                const data = await res.json();
+
+                const workerIcon = L.divIcon({
+                    className: 'w-icon',
+                    html: '<div style="background:#0F2942; color:#F59E0B; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; border:2px solid white;">🛠️</div>',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+
+                data.workers.forEach(w => {
+                    L.marker([w.lat, w.lng], { icon: workerIcon })
+                        .addTo(adminMap)
+                        .bindPopup(`<b>${w.name}</b><br>${w.categories}<br><span style="color:#0F2942;">${w.society}</span>`);
+                });
+            } catch(e) {
+                console.error("Map err", e);
+            }
+        }
+
+        async function fetchForecastData() {
+            try {
+                const res = await fetch('/api/admin/forecast/demand');
+                const data = await res.json();
+
+                const ctx = document.getElementById('forecastChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.dates,
+                        datasets: [
+                            {
+                                label: 'Electrician Demand',
+                                data: data.demand_by_category.Electrician,
+                                borderColor: '#0F2942',
+                                backgroundColor: 'rgba(15, 41, 66, 0.08)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'Plumber Demand',
+                                data: data.demand_by_category.Plumber,
+                                borderColor: '#0284C7',
+                                backgroundColor: 'rgba(2, 132, 199, 0.08)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'Carpenter Demand',
+                                data: data.demand_by_category.Carpenter,
+                                borderColor: '#D97706',
+                                backgroundColor: 'rgba(217, 119, 6, 0.08)',
+                                tension: 0.3,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'top' } }
+                    }
+                });
+
+                const list = document.getElementById('localitySurgeList');
+                list.innerHTML = '';
+                data.locality_breakdown.forEach(loc => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex justify-between items-center';
+                    div.innerHTML = `
+                        <div>
+                            <p class="font-bold text-slate-800">${loc.locality}</p>
+                            <p class="text-[10px] text-slate-500">Top Trade: ${loc.dominant_category}</p>
+                        </div>
+                        <span class="text-xs font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                            ${loc.surge_multiplier}x
+                        </span>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch(e) {
+                console.error("Forecast err", e);
+            }
+        }
+
+        async function fetchAuditLedger() {
+            try {
+                const res = await fetch('/api/admin/audit-ledger');
+                const data = await res.json();
+                const tbody = document.getElementById('ledgerTableBody');
+                tbody.innerHTML = '';
+
+                data.ledger_entries.forEach(e => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50';
+                    tr.innerHTML = `
+                        <td class="p-2.5 text-slate-500">${e.timestamp}</td>
+                        <td class="p-2.5 font-bold text-slate-800">${e.booking_id.slice(0, 8)}...</td>
+                        <td class="p-2.5 text-right text-emerald-700 font-bold">₹${e.worker_payout.toFixed(2)}</td>
+                        <td class="p-2.5 text-right text-slate-600">₹${e.platform_commission.toFixed(2)}</td>
+                        <td class="p-2.5 text-right text-slate-800 font-bold">₹${e.coop_welfare_fee.toFixed(2)}</td>
+                        <td class="p-2.5 text-[11px] font-sans text-emerald-700 font-bold text-center">Verified ✅</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) {
+                console.error("Ledger err", e);
+            }
+        }
+    </script>
+</body>
+</html>

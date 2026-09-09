@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SahakarConnect - Official Cooperative Home & Artisan Services Portal (Ghaziabad)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Sans+Kannada:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Gujarati:wght@400;500;600;700&family=Noto+Sans+Gurmukhi:wght@400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Noto Sans Kannada', 'Noto Sans Bengali', 'Noto Sans Gujarati', 'Noto Sans Gurmukhi', sans-serif;
+            background-color: #F8FAFC;
+        }
+
+        .tricolor-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #FF9933 0%, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%, #138808 100%);
+        }
+
+        .gov-header {
+            background-color: #FFFFFF;
+            border-bottom: 2px solid #E2E8F0;
+        }
+
+        .gov-nav {
+            background: linear-gradient(135deg, #0F2942 0%, #163A5F 100%);
+        }
+
+        .hero-banner {
+            background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 50%, #F8FAFC 100%);
+            border-bottom: 1px solid #CBD5E1;
+        }
+
+        .pulse-sos {
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); }
+            50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+        }
+    </style>
+</head>
+<body class="text-slate-900 antialiased selection:bg-amber-500 selection:text-white relative">
+
+    <!-- Official Tricolor Stripe -->
+    <div class="tricolor-bar"></div>
+
+    <!-- Top Government Utility Bar with Accessibility & 10+ State Languages -->
+    <div class="bg-slate-900 text-slate-200 text-xs py-2 px-4 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-2 text-[11px] sm:text-xs">
+                <span class="inline-block w-2 h-2 rounded-full bg-amber-400"></span>
+                <span class="font-bold text-amber-300" data-i18n="top_govt_title">Government of Uttar Pradesh • Department of Cooperatives</span>
+                <span class="hidden md:inline text-slate-500">|</span>
+                <span class="hidden md:inline text-slate-300" data-i18n="top_bar_govt">UP Cooperative Societies Act Affiliated • Skill India Recognized</span>
+            </div>
+
+            <!-- Accessibility & Language Dropdown -->
+            <div class="flex items-center space-x-4">
+                <a href="#emergency" class="text-rose-400 font-bold hover:text-rose-300 flex items-center text-xs">
+                    <i class="fa-solid fa-phone-volume mr-1.5 text-rose-400"></i>
+                    <span data-i18n="emergency_helpline">24x7 Citizen Helpline: 1800-GZB-HELP</span>
+                </a>
+                
+                <!-- 10+ State Languages Dropdown -->
+                <div class="flex items-center space-x-1.5 bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-700">
+                    <i class="fa-solid fa-language text-amber-400 text-sm"></i>
+                    <select id="globalLangSelect" onchange="applyLanguage(this.value)" class="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer">
+                        <option value="en" class="bg-slate-900 text-white">English (EN)</option>
+                        <option value="hi" class="bg-slate-900 text-white">हिन्दी (Hindi)</option>
+                        <option value="bho" class="bg-slate-900 text-white">भोजपुरी (Bhojpuri)</option>
+                        <option value="pa" class="bg-slate-900 text-white">ਪੰਜਾਬੀ (Punjabi)</option>
+                        <option value="bn" class="bg-slate-900 text-white">বাংলা (Bengali)</option>
+                        <option value="gu" class="bg-slate-900 text-white">ગુજરાતી (Gujarati)</option>
+                        <option value="mr" class="bg-slate-900 text-white">मराठी (Marathi)</option>
+                        <option value="ta" class="bg-slate-900 text-white">தமிழ் (Tamil)</option>
+                        <option value="te" class="bg-slate-900 text-white">తెలుగు (Telugu)</option>
+                        <option value="kn" class="bg-slate-900 text-white">ಕನ್ನಡ (Kannada)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Government Header with Official Sahakar Emblem -->
+    <header class="gov-header py-4 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <a href="/" class="flex items-center space-x-4 group">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0">
+                    <img src="/static/logo.svg" onerror="this.src='/static/logo.png'" alt="Sahakar Project Emblem" class="w-full h-full object-contain filter drop-shadow-md">
+                </div>
+                <div class="space-y-0.5">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Sahakar<span class="text-amber-600">Connect</span></span>
+                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 bg-slate-100 text-slate-800 border border-slate-300 rounded">GHAZIABAD</span>
+                    </div>
+                    <p class="text-xs sm:text-sm font-bold text-slate-700" data-i18n="society_name">
+                        Ghaziabad District Artisans & Household Workers Cooperative Federation Ltd.
+                    </p>
+                    <p class="text-[11px] text-slate-500 font-medium" data-i18n="portal_subtitle">
+                        Official Cooperative Citizen & Artisan Service Portal
+                    </p>
+                </div>
+            </a>
+
+            <!-- Quick Access Portals -->
+            <div class="flex items-center space-x-2.5 flex-wrap">
+                <a href="/customer" class="inline-flex items-center px-4 py-2 rounded-lg text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition shadow-sm">
+                    <i class="fa-solid fa-user-check mr-1.5 text-amber-600"></i>
+                    <span data-i18n="nav_customer">Citizen Portal</span>
+                </a>
+                <a href="/worker" class="inline-flex items-center px-4 py-2 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition shadow-sm">
+                    <i class="fa-solid fa-screwdriver-wrench mr-1.5 text-emerald-700"></i>
+                    <span data-i18n="nav_worker">Artisan Portal</span>
+                </a>
+                <a href="/admin" class="inline-flex items-center px-4 py-2 rounded-lg text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition shadow-sm">
+                    <i class="fa-solid fa-landmark mr-1.5 text-amber-400"></i>
+                    <span data-i18n="nav_admin">Federation Admin</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Government Navigation Bar -->
+    <nav class="gov-nav text-white shadow sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center overflow-x-auto py-2.5">
+            <div class="flex items-center space-x-6 text-xs sm:text-sm font-bold whitespace-nowrap">
+                <a href="/" class="text-amber-300 hover:text-white transition flex items-center">
+                    <i class="fa-solid fa-house mr-1.5"></i><span data-i18n="nav_home">Home</span>
+                </a>
+                <a href="#services" class="text-slate-200 hover:text-white transition" data-i18n="nav_services">Services</a>
+                <a href="#bulk-desk" class="text-amber-300 hover:text-white transition" data-i18n="nav_bulk_desk">🏢 Bulk Enterprise Desk</a>
+                <a href="#parts-mandi" class="text-slate-200 hover:text-white transition" data-i18n="nav_mandi">🔩 Sahakar Mandi (Parts)</a>
+                <a href="#coop-model" class="text-slate-200 hover:text-white transition" data-i18n="nav_welfare">Fair Wage Policy</a>
+                <a href="#localities" class="text-slate-200 hover:text-white transition" data-i18n="nav_coverage">District Coverage</a>
+                <a href="#helpdesk" class="text-slate-200 hover:text-white transition" data-i18n="nav_helpdesk">Citizen Helpdesk</a>
+            </div>
+            <div class="hidden lg:flex items-center space-x-2 text-xs text-amber-200 font-semibold">
+                <i class="fa-solid fa-shield-halved text-amber-400 mr-1"></i>
+                <span data-i18n="nav_wage_share">Direct 85% Wage Retention</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero-banner py-12 lg:py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-7 space-y-5">
+                    <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-white border border-slate-300 text-xs font-bold text-slate-800 shadow-sm">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                        <span data-i18n="hero_badge">1,250+ Certified Artisans Active in Ghaziabad</span>
+                    </div>
+
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight" id="heroMainHeading" data-i18n="hero_heading">
+                        We Provide Reliable, Cooperative Home & Artisan Services in Ghaziabad
+                    </h1>
+
+                    <p class="text-sm sm:text-base text-slate-600 leading-relaxed" data-i18n="hero_subheading">
+                        Connecting verified electricians, plumbers, carpenters, raj mistri, labourers, and movers directly with Ghaziabad residents. Powered by direct fair wages (85% worker share), GPS dispatch, and comprehensive social welfare.
+                    </p>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-300 space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                            <div class="sm:col-span-5">
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="trade_label">1. Required Trade</label>
+                                <select id="heroCategory" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                                    <option value="Electrician">⚡ Electrician (Wiring, Inverter, MCB)</option>
+                                    <option value="Plumber">🔧 Plumber (Sanitary, Leakage, Motor)</option>
+                                    <option value="Carpenter">🪚 Carpenter (Locks, Modular, Woodwork)</option>
+                                    <option value="Appliance Repair">❄️ Appliance & AC Servicing</option>
+                                    <option value="Construction Mistri">🧱 Raj Mistri (Masonry & Renovation)</option>
+                                    <option value="General Labour">👷 Beldar Labour (Shifting / Helper)</option>
+                                    <option value="Packers Movers">📦 Packers & Movers (Home Relocation)</option>
+                                    <option value="Deep Cleaning">🧹 Deep Home Cleaning</option>
+                                    <option value="Emergency SOS">🚨 24x7 Emergency SOS Dispatch</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-4">
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="locality_label">2. Ghaziabad Locality</label>
+                                <select id="heroLocality" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                                    <option value="Indirapuram">Indirapuram (Shipra, Ahinsa)</option>
+                                    <option value="Vaishali">Vaishali (Sector 1-9)</option>
+                                    <option value="Vasundhara">Vasundhara (Sector 1-18)</option>
+                                    <option value="Raj Nagar Extension">Raj Nagar Extension</option>
+                                    <option value="Raj Nagar">Raj Nagar (Sectors 1-15)</option>
+                                    <option value="Kavi Nagar">Kavi Nagar & Shastri Nagar</option>
+                                    <option value="Crossings Republik">Crossings Republik</option>
+                                    <option value="Kaushambi">Kaushambi</option>
+                                    <option value="Govindpuram">Govindpuram</option>
+                                    <option value="Sahibabad">Sahibabad & Mohan Nagar</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-3 flex items-end">
+                                <button onclick="handleHeroSearch()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm py-2.5 px-3 rounded-lg shadow transition flex items-center justify-center space-x-1.5">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <span data-i18n="btn_find_workers">Find & Book</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-200 flex flex-wrap justify-between items-center text-xs text-slate-600 font-semibold gap-2">
+                            <span class="flex items-center"><i class="fa-solid fa-award text-amber-600 mr-1.5"></i> <span data-i18n="verified_badge">Govt. Skill India Certified</span></span>
+                            <span class="flex items-center"><i class="fa-solid fa-shield-halved text-emerald-600 mr-1.5"></i> <span data-i18n="warranty_badge">30-Day Escrow Warranty</span></span>
+                            <span class="flex items-center"><i class="fa-solid fa-scale-balanced text-indigo-600 mr-1.5"></i> <span data-i18n="parts_badge">Wholesale Parts Rates</span></span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                            <p class="text-xl sm:text-2xl font-black text-slate-900">85%</p>
+                            <p class="text-[11px] text-slate-600 font-bold" data-i18n="stat_payout">Direct Worker Wage Share</p>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                            <p class="text-xl sm:text-2xl font-black text-slate-900">45k+</p>
+                            <p class="text-[11px] text-slate-600 font-bold" data-i18n="stat_jobs">Completed Citizen Services</p>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                            <p class="text-xl sm:text-2xl font-black text-amber-600">4.92★</p>
+                            <p class="text-[11px] text-slate-600 font-bold" data-i18n="stat_rating">Citizen Satisfaction Rating</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5">
+                    <div class="bg-white p-4 rounded-2xl shadow-md border border-slate-300 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                                <h3 class="text-xs font-bold uppercase text-slate-800" data-i18n="radar_title">Ghaziabad Sector Artisan Radar</h3>
+                            </div>
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200" data-i18n="radar_badge">
+                                District GPS Matching Active
+                            </span>
+                        </div>
+
+                        <div id="heroRadarMap" class="h-64 w-full rounded-xl border border-slate-200 overflow-hidden relative z-0"></div>
+
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-lg bg-slate-800 text-white font-bold flex items-center justify-center text-xs">
+                                    RK
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-900">Ramesh Kumar (Master Electrician)</h4>
+                                    <p class="text-[11px] text-slate-500">Raj Nagar Artisans Samiti • <span class="text-emerald-700 font-bold">1.2 km away</span></p>
+                                </div>
+                            </div>
+                            <a href="/customer" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-1.5 rounded transition">
+                                <span data-i18n="btn_book_now">Book Now</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: SERVICES -->
+    <section id="services" class="py-16 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200" data-i18n="services_dept_tag">
+                    Department of Cooperatives
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2" data-i18n="services_heading">
+                    Authorized Home, Artisan & Construction Services
+                </h2>
+                <p class="text-sm text-slate-600 mt-2" data-i18n="services_subheading">
+                    Transparent government-approved rates, zero middleman charges, certified ITI technicians, and guaranteed workmanship.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow transition flex flex-col justify-between">
+                    <div class="space-y-2">
+                        <div class="text-2xl">⚡</div>
+                        <h3 class="text-base font-bold text-slate-900" data-i18n="srv_elec">Electrical Services</h3>
+                        <p class="text-xs text-slate-600" data-i18n="srv_elec_desc">Residential wiring, MCB troubleshooting, inverter/battery, switchboards.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-800"><span data-i18n="from_rate">From</span> ₹350</span>
+                        <a href="/customer?cat=Electrician" class="font-bold text-amber-700 hover:underline"><span data-i18n="btn_book">Book</span> →</a>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow transition flex flex-col justify-between">
+                    <div class="space-y-2">
+                        <div class="text-2xl">🔧</div>
+                        <h3 class="text-base font-bold text-slate-900" data-i18n="srv_plumb">Plumbing & Sanitary</h3>
+                        <p class="text-xs text-slate-600" data-i18n="srv_plumb_desc">Pipe leakage, tap fittings, sanitary fixtures, tank cleaning & motors.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-800"><span data-i18n="from_rate">From</span> ₹400</span>
+                        <a href="/customer?cat=Plumber" class="font-bold text-amber-700 hover:underline"><span data-i18n="btn_book">Book</span> →</a>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow transition flex flex-col justify-between">
+                    <div class="space-y-2">
+                        <div class="text-2xl">🧱</div>
+                        <h3 class="text-base font-bold text-slate-900" data-i18n="srv_mistri">Raj Mistri / Masonry</h3>
+                        <p class="text-xs text-slate-600" data-i18n="srv_mistri_desc">Home renovation, brickwork, wall plaster, floor tiles & structural repair.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-800"><span data-i18n="from_rate">From</span> ₹750/day</span>
+                        <a href="/customer?cat=Construction+Mistri" class="font-bold text-amber-700 hover:underline"><span data-i18n="btn_book">Book</span> →</a>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow transition flex flex-col justify-between">
+                    <div class="space-y-2">
+                        <div class="text-2xl">📦</div>
+                        <h3 class="text-base font-bold text-slate-900" data-i18n="srv_movers">Packers & Movers</h3>
+                        <p class="text-xs text-slate-600" data-i18n="srv_movers_desc">Complete home shifting with AI luggage estimator, trucks & helpers.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-800"><span data-i18n="from_rate">From</span> ₹1,800</span>
+                        <a href="/customer?cat=Packers+Movers" class="font-bold text-amber-700 hover:underline"><span data-i18n="btn_book">Book</span> →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: BULK & COMMERCIAL WORKFORCE DESK -->
+    <section id="bulk-desk" class="py-16 bg-slate-900 text-white border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-6 space-y-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-400 bg-slate-800 px-3 py-1 rounded-full border border-slate-700" data-i18n="bulk_tag">
+                        Enterprise & Society Contracts
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight" data-i18n="bulk_heading">
+                        🏢 Bulk Commercial Workforce Desk
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed" data-i18n="bulk_subheading">
+                        Need 10 to 50+ Plumbers, Electricians, Masons, or Labourers for factory pipe installations, housing society renovations, or builder projects? Hire pre-verified cooperative workforce teams at tiered government-standard daily wage rates.
+                    </p>
+                    <div class="grid grid-cols-2 gap-3 text-xs pt-2">
+                        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                            <span class="text-amber-400 font-bold">✓ Direct GST Invoicing</span>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Compliant enterprise tax billing.</p>
+                        </div>
+                        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                            <span class="text-emerald-400 font-bold">✓ Dedicated Lead Supervisor</span>
+                            <p class="text-[11px] text-slate-400 mt-0.5">On-site coordination included.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-6 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
+                    <h3 class="text-sm font-bold text-amber-300 uppercase" data-i18n="bulk_calc_title">Live Bulk Wage & Team Cost Calculator</h3>
+                    
+                    <form onsubmit="handleBulkBookingSubmit(event)" class="space-y-3 text-xs text-slate-200">
+                        <div>
+                            <label class="block font-bold mb-1" data-i18n="bulk_select_trade">Select Required Trade</label>
+                            <select id="bulkTrade" onchange="calculateBulkCost()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-xs text-white">
+                                <option value="Plumber">Plumbers (Industrial Pipeline / Sanitations)</option>
+                                <option value="Electrician">Electricians (Commercial Wiring / Panels)</option>
+                                <option value="Construction Mistri">Raj Mistri (Masonry / Brickwork)</option>
+                                <option value="General Labour">General Labourers (Material Shifting / Helpers)</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-bold mb-1" data-i18n="bulk_workers_label">Number of Workers</label>
+                                <select id="bulkCount" onchange="calculateBulkCost()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-xs text-white">
+                                    <option value="5">5 Workers</option>
+                                    <option value="10" selected>10 Workers</option>
+                                    <option value="20">20 Workers</option>
+                                    <option value="30">30 Workers</option>
+                                    <option value="50">50 Workers</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-bold mb-1" data-i18n="bulk_days_label">Contract Duration (Days)</label>
+                                <input type="number" id="bulkDays" value="3" min="1" max="60" oninput="calculateBulkCost()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-xs text-white">
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-slate-900 rounded-xl border border-slate-700 flex justify-between items-center font-mono">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block" data-i18n="bulk_total_label">Total Estimated Contract Cost</span>
+                                <span class="text-xl font-bold text-amber-400" id="bulkTotalDisplay">₹19,500.00</span>
+                            </div>
+                            <span class="text-[10px] text-emerald-400 bg-emerald-950 px-2 py-1 rounded border border-emerald-800">85% Worker Pool</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="bulkCompany" placeholder="Company / Society Name" required class="bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white">
+                            <input type="tel" id="bulkPhone" placeholder="Contact Mobile" required class="bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white">
+                        </div>
+
+                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow" data-i18n="bulk_btn_submit">
+                            Submit Bulk Contract Request
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: SAHAKAR MANDI WHOLESALE SPARE PARTS -->
+    <section id="parts-mandi" class="py-14 bg-slate-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-8">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                    Zero Retailer Markup
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+                    🔩 Sahakar Mandi — Transparent Wholesale Spare Parts Index
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                    Federation-approved wholesale spare parts catalog. Technicians provide genuine parts at bulk procurement rates with zero markups.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                    <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">⚡ Electrical</span>
+                    <h4 class="text-xs font-bold text-slate-900">Havells 16A/32A C-Curve MCB</h4>
+                    <p class="text-[10px] text-slate-500">10kA Breaking Capacity • 24 Mo Warranty</p>
+                    <div class="flex justify-between items-baseline pt-2 border-t border-slate-100 font-mono">
+                        <span class="text-xs text-slate-400 line-through">MRP ₹280</span>
+                        <span class="text-sm font-bold text-emerald-800">Co-op: ₹175</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                    <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">🔧 Plumbing</span>
+                    <h4 class="text-xs font-bold text-slate-900">Finolex 1/2" CPVC Heavy Ball Valve</h4>
+                    <p class="text-[10px] text-slate-500">SDR 11 Lead-Free High Pressure • 36 Mo Warranty</p>
+                    <div class="flex justify-between items-baseline pt-2 border-t border-slate-100 font-mono">
+                        <span class="text-xs text-slate-400 line-through">MRP ₹320</span>
+                        <span class="text-sm font-bold text-emerald-800">Co-op: ₹190</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                    <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">❄️ AC Repair</span>
+                    <h4 class="text-xs font-bold text-slate-900">EPCOS 45uF AC Run Capacitor</h4>
+                    <p class="text-[10px] text-slate-500">440V Heavy Duty Motor Capacitor • 12 Mo Warranty</p>
+                    <div class="flex justify-between items-baseline pt-2 border-t border-slate-100 font-mono">
+                        <span class="text-xs text-slate-400 line-through">MRP ₹420</span>
+                        <span class="text-sm font-bold text-emerald-800">Co-op: ₹240</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                    <span class="text-[10px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded">🪚 Carpentry</span>
+                    <h4 class="text-xs font-bold text-slate-900">Godrej 6-Lever Master Deadlock</h4>
+                    <p class="text-[10px] text-slate-500">High-Security Brass Cylinder • 60 Mo Warranty</p>
+                    <div class="flex justify-between items-baseline pt-2 border-t border-slate-100 font-mono">
+                        <span class="text-xs text-slate-400 line-through">MRP ₹1450</span>
+                        <span class="text-sm font-bold text-emerald-800">Co-op: ₹980</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: INTERACTIVE FAIR WAGE POLICY & SIMULATOR (Feature 3) -->
+    <section id="coop-model" class="py-16 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            <div class="text-center max-w-3xl mx-auto">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-300" data-i18n="compare_tag">
+                    Fair Wage Policy
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2" data-i18n="compare_heading">
+                    Government Cooperative Standard vs Private Aggregators
+                </h2>
+            </div>
+
+            <!-- Interactive Live Wage Split Simulator -->
+            <div class="max-w-4xl mx-auto bg-slate-50 p-6 rounded-2xl border border-slate-300 shadow-sm space-y-4">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">🎮 Interactive Live Fair Wage Split Calculator</h3>
+                        <p class="text-xs text-slate-500">Drag the slider to test how any customer service fee is distributed transparently:</p>
+                    </div>
+                    <span class="text-lg font-mono font-black text-amber-700 bg-amber-50 px-3 py-1 rounded-lg border border-amber-300" id="simFeeDisplay">Customer Pays: ₹1,000.00</span>
+                </div>
+
+                <input type="range" id="wageSimSlider" min="350" max="10000" step="50" value="1000" oninput="updateWageSimulation(this.value)" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-amber-600">
+
+                <div class="grid grid-cols-3 gap-3 text-center font-mono">
+                    <div class="bg-emerald-50 border border-emerald-300 p-3 rounded-xl">
+                        <span class="text-[10px] text-emerald-800 uppercase font-bold block" data-i18n="coop_payout_col">Worker Take-Home (85%)</span>
+                        <p class="text-lg font-black text-emerald-900" id="simWorkerTakeHome">₹930.00</p>
+                    </div>
+                    <div class="bg-slate-100 border border-slate-300 p-3 rounded-xl">
+                        <span class="text-[10px] text-slate-600 uppercase font-bold block" data-i18n="coop_ops_col">Platform Ops (12%)</span>
+                        <p class="text-lg font-black text-slate-900" id="simPlatformOps">₹50.00</p>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-300 p-3 rounded-xl">
+                        <span class="text-[10px] text-amber-800 uppercase font-bold block" data-i18n="coop_welfare_col">PMSBY Welfare (3%)</span>
+                        <p class="text-lg font-black text-amber-900" id="simWelfareFund">₹20.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <div class="bg-white p-6 rounded-xl border border-slate-300 space-y-3">
+                    <h3 class="font-bold text-base text-rose-800 flex items-center">
+                        <i class="fa-solid fa-xmark mr-2 text-rose-600"></i> <span data-i18n="compare_corp_title">Private Commercial Apps</span>
+                    </h3>
+                    <ul class="space-y-2 text-xs text-slate-600">
+                        <li data-i18n="compare_corp_1">• 30% to 40% high commission taken from workers</li>
+                        <li data-i18n="compare_corp_2">• No accidental insurance or medical safety net</li>
+                        <li data-i18n="compare_corp_3">• Surge pricing during rain and emergencies</li>
+                        <li data-i18n="compare_corp_4">• Unregulated pricing and opaque deductions</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border-2 border-emerald-600 space-y-3 shadow-sm">
+                    <h3 class="font-bold text-base text-emerald-800 flex items-center">
+                        <i class="fa-solid fa-check mr-2 text-emerald-600"></i> <span data-i18n="compare_coop_title">SahakarConnect Cooperative Standard</span>
+                    </h3>
+                    <ul class="space-y-2 text-xs text-slate-700 font-semibold">
+                        <li>• <strong data-i18n="compare_coop_1">85% Direct Worker Payout: Only 12% ops & 3% welfare fund</strong></li>
+                        <li>• <strong data-i18n="compare_coop_2">Guaranteed Welfare Fund: PMSBY accidental insurance & medical pool</strong></li>
+                        <li>• <strong data-i18n="compare_coop_3">Standard Government Rates: Fixed fair pricing with zero surge</strong></li>
+                        <li>• <strong data-i18n="compare_coop_4">Verified Audit Registry: Complete transparency of all transactions</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: INTERACTIVE DISTRICT LOCALITY EXPLORER (Feature 3) -->
+    <section id="localities" class="py-16 bg-slate-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-xl sm:text-2xl font-black text-slate-900" data-i18n="localities_heading">
+                    Ghaziabad District Network Coverage
+                </h2>
+                <p class="text-xs text-slate-500 mt-1" data-i18n="localities_subheading">
+                    Interactive district map & sector explorer. Click any sector to view active nodes and instant booking.
+                </p>
+            </div>
+
+            <!-- Active Sector Info Banner (Interactive) -->
+            <div id="sectorInfoCard" class="max-w-4xl mx-auto p-4 bg-white rounded-2xl border-2 border-amber-500 shadow-sm flex flex-wrap justify-between items-center gap-4">
+                <div class="space-y-0.5">
+                    <span class="text-[10px] uppercase font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Selected Sector Hub</span>
+                    <h3 class="text-base font-black text-slate-900" id="sectorName">Indirapuram (Shipra, Ahinsa Khand, Vaibhav Khand)</h3>
+                    <p class="text-xs text-slate-600" id="sectorStats">⚡ 210+ Verified Active Artisans • Avg Arrival: 14 mins • 24x7 SOS Active</p>
+                </div>
+                <a href="/customer?locality=Indirapuram" id="sectorBookBtn" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition shadow">
+                    Book Artisans in Indirapuram →
+                </a>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 text-center text-xs max-w-6xl mx-auto">
+                <div onclick="selectSectorNode('Indirapuram', '210+ Artisans', '14 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border-2 border-amber-500 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-900 block">Indirapuram</span><p class="text-[10px] text-emerald-700 font-bold">210+ Artisans</p></div>
+                <div onclick="selectSectorNode('Vaishali', '160+ Artisans', '12 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Vaishali</span><p class="text-[10px] text-emerald-700 font-bold">160+ Artisans</p></div>
+                <div onclick="selectSectorNode('Vasundhara', '175+ Artisans', '15 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Vasundhara</span><p class="text-[10px] text-emerald-700 font-bold">175+ Artisans</p></div>
+                <div onclick="selectSectorNode('Raj Nagar Extension', '190+ Artisans', '18 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Raj Nagar Extn</span><p class="text-[10px] text-emerald-700 font-bold">190+ Artisans</p></div>
+                <div onclick="selectSectorNode('Raj Nagar (Old)', '140+ Artisans', '11 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Raj Nagar (Old)</span><p class="text-[10px] text-emerald-700 font-bold">140+ Artisans</p></div>
+                <div onclick="selectSectorNode('Kavi Nagar', '120+ Artisans', '13 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Kavi Nagar</span><p class="text-[10px] text-emerald-700 font-bold">120+ Artisans</p></div>
+                <div onclick="selectSectorNode('Crossings Republik', '150+ Artisans', '16 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Crossings Republik</span><p class="text-[10px] text-emerald-700 font-bold">150+ Artisans</p></div>
+                <div onclick="selectSectorNode('Kaushambi', '95+ Artisans', '10 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Kaushambi</span><p class="text-[10px] text-emerald-700 font-bold">95+ Artisans</p></div>
+                <div onclick="selectSectorNode('Sahibabad', '130+ Artisans', '14 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Sahibabad</span><p class="text-[10px] text-emerald-700 font-bold">130+ Artisans</p></div>
+                <div onclick="selectSectorNode('Govindpuram', '85+ Artisans', '19 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Govindpuram</span><p class="text-[10px] text-emerald-700 font-bold">85+ Artisans</p></div>
+                <div onclick="selectSectorNode('Mohan Nagar', '110+ Artisans', '15 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Mohan Nagar</span><p class="text-[10px] text-emerald-700 font-bold">110+ Artisans</p></div>
+                <div onclick="selectSectorNode('Shastri Nagar', '90+ Artisans', '12 mins')" class="sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm"><span class="font-bold text-slate-800 block">Shastri Nagar</span><p class="text-[10px] text-emerald-700 font-bold">90+ Artisans</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: OFFICIAL CITIZEN HELPDESK & GOVERNMENT AFFILIATIONS -->
+    <section id="helpdesk" class="py-16 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-300" data-i18n="helpdesk_tag">
+                    Official Portals & Contact Information
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2" data-i18n="helpdesk_heading">
+                    Citizen Helpdesk & Official Government Programs
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-600 mt-2" data-i18n="helpdesk_subheading">
+                    SahakarConnect operates under recognized state and central cooperative development frameworks.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-7 bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-sm font-bold text-slate-900 uppercase flex items-center" data-i18n="helpdesk_programs_title">
+                        <i class="fa-solid fa-landmark mr-2 text-amber-600"></i> Official Government Programs & Affiliated Portals
+                    </h3>
+
+                    <div class="space-y-3 text-xs">
+                        <a href="https://cooperation.gov.in" target="_blank" rel="noopener noreferrer" class="block p-3 bg-white hover:bg-amber-50 rounded-xl border border-slate-200 transition">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-900" data-i18n="govt_prog_1_title">🏛️ Ministry of Cooperation, Government of India</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-amber-700"></i>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="govt_prog_1_desc">National apex body for cooperative development and policy frameworks (cooperation.gov.in).</p>
+                        </a>
+
+                        <a href="https://upsdc.gov.in" target="_blank" rel="noopener noreferrer" class="block p-3 bg-white hover:bg-amber-50 rounded-xl border border-slate-200 transition">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-900" data-i18n="govt_prog_2_title">🏛️ Department of Cooperatives, Government of Uttar Pradesh</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-amber-700"></i>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="govt_prog_2_desc">State regulatory and registration authority under the UP Cooperative Societies Act.</p>
+                        </a>
+
+                        <a href="https://jansuraksha.gov.in" target="_blank" rel="noopener noreferrer" class="block p-3 bg-white hover:bg-amber-50 rounded-xl border border-slate-200 transition">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-900" data-i18n="govt_prog_3_title">🛡️ Pradhan Mantri Suraksha Bima Yojana (PMSBY)</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-amber-700"></i>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="govt_prog_3_desc">Official social security accidental insurance integration for all registered cooperative artisans.</p>
+                        </a>
+
+                        <a href="https://ghaziabad.nic.in" target="_blank" rel="noopener noreferrer" class="block p-3 bg-white hover:bg-amber-50 rounded-xl border border-slate-200 transition">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-900" data-i18n="govt_prog_4_title">📍 District Magistrate & Administration, Ghaziabad</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-amber-700"></i>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="govt_prog_4_desc">District official administrative portal and civic administration (ghaziabad.nic.in).</p>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-sm font-bold text-slate-900 uppercase flex items-center" data-i18n="helpdesk_contact_title">
+                        <i class="fa-solid fa-headset mr-2 text-emerald-600"></i> Official Helpdesk & Office Contact
+                    </h3>
+
+                    <div class="space-y-3 text-xs text-slate-700">
+                        <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold" data-i18n="contact_tollfree_label">24x7 Citizen Helpline (Toll-Free)</span>
+                            <p class="text-sm font-black text-slate-900" data-i18n="contact_tollfree_val">📞 1800-GZB-HELP / 1800-180-2525</p>
+                        </div>
+
+                        <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold" data-i18n="contact_office_label">Ghaziabad Federation Office Line</span>
+                            <p class="text-xs font-bold text-slate-900" data-i18n="contact_office_val">☎️ 0120-2828001 / +91-9811000001</p>
+                        </div>
+
+                        <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold" data-i18n="contact_emails_label">Official Support & Grievance Emails</span>
+                            <p class="text-xs font-bold text-amber-800">✉️ support@sahakarghaziabad.in</p>
+                            <p class="text-xs font-bold text-slate-700">✉️ helpdesk-coop@up.gov.in</p>
+                        </div>
+
+                        <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                            <span class="text-[10px] text-slate-500 uppercase font-bold" data-i18n="contact_hq_label">Physical Federation Headquarters</span>
+                            <p class="text-[11px] text-slate-600" data-i18n="contact_hq_val">
+                                Sahakari Bhawan, Sector 10, Raj Nagar,<br>
+                                Ghaziabad, Uttar Pradesh - 201002
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 text-slate-400 text-xs py-10 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="space-y-2">
+                <div class="flex items-center space-x-2 text-white font-bold text-sm">
+                    <span>SahakarConnect Ghaziabad</span>
+                </div>
+                <p class="text-slate-400 text-[11px] leading-relaxed" data-i18n="society_name">
+                    Ghaziabad District Artisans & Household Workers Cooperative Federation Ltd.
+                </p>
+                <p class="text-slate-500 font-mono text-[10px]">Registration: UP/GZB/COOP/2026/0881</p>
+            </div>
+
+            <div class="space-y-1.5">
+                <h4 class="text-xs font-bold text-white uppercase" data-i18n="nav_services">Services</h4>
+                <ul class="space-y-1 text-[11px]">
+                    <li><a href="/customer?cat=Electrician" class="hover:text-amber-400" data-i18n="srv_elec">Electrician Services</a></li>
+                    <li><a href="/customer?cat=Plumber" class="hover:text-amber-400" data-i18n="srv_plumb">Plumbing Services</a></li>
+                    <li><a href="/customer?cat=Construction+Mistri" class="hover:text-amber-400" data-i18n="srv_mistri">Raj Mistri (Masonry)</a></li>
+                    <li><a href="/customer?cat=Packers+Movers" class="hover:text-amber-400" data-i18n="srv_movers">Packers & Movers</a></li>
+                </ul>
+            </div>
+
+            <div class="space-y-1.5">
+                <h4 class="text-xs font-bold text-white uppercase">Portals</h4>
+                <ul class="space-y-1 text-[11px]">
+                    <li><a href="/customer" class="hover:text-amber-400" data-i18n="nav_customer">Citizen Service Portal</a></li>
+                    <li><a href="/worker" class="hover:text-amber-400" data-i18n="nav_worker">Artisan / Worker Portal</a></li>
+                    <li><a href="/admin" class="hover:text-amber-400" data-i18n="nav_admin">Federation Administration</a></li>
+                    <li><a href="#bulk-desk" class="hover:text-amber-400" data-i18n="nav_bulk_desk">Bulk Commercial Desk</a></li>
+                </ul>
+            </div>
+
+            <div class="space-y-1.5">
+                <h4 class="text-xs font-bold text-white uppercase" data-i18n="contact_hq_label">Federation Office</h4>
+                <p class="text-slate-400 text-[11px]" data-i18n="contact_hq_val">
+                    Sahakari Bhawan, Sector 10, Raj Nagar,<br>
+                    Ghaziabad, Uttar Pradesh - 201002
+                </p>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pt-4 border-t border-slate-900 flex flex-wrap justify-between items-center text-[11px] text-slate-500">
+            <p>© 2026 SahakarConnect Cooperative Federation. All rights reserved.</p>
+            <div class="flex space-x-3 mt-2 sm:mt-0">
+                <span data-i18n="radar_badge">District GPS Matching Active</span>
+                <span>•</span>
+                <span data-i18n="nav_wage_share">85% Worker Wage Share</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- FLOATING AI ASSISTANT BOT WITH VOICE RECOGNITION (10 Languages) & FILE ATTACHMENTS -->
+    <div id="aiBotLauncher" class="fixed bottom-6 right-6 z-50">
+        <button onclick="toggleAiBot()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-3 rounded-full shadow-2xl border-2 border-amber-400 flex items-center space-x-2.5 transition transform hover:scale-105">
+            <span class="text-base">🤖</span>
+            <span data-i18n="ai_launcher_btn">Sahakar AI Sahayak</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        </button>
+    </div>
+
+    <!-- AI BOT MODAL DRAWER -->
+    <div id="aiBotDrawer" class="fixed bottom-6 right-6 z-50 hidden max-w-sm w-[90vw] bg-white rounded-2xl shadow-2xl border border-slate-300 overflow-hidden flex flex-col h-[530px]">
+        <div class="bg-slate-900 text-white p-3.5 flex justify-between items-center border-b border-slate-800">
+            <div class="flex items-center space-x-2">
+                <span class="text-xl">🤖</span>
+                <div>
+                    <h3 class="text-xs font-bold text-amber-300" data-i18n="ai_drawer_title">Sahakar AI Sahayak (सहकार मित्र)</h3>
+                    <p class="text-[10px] text-slate-400" data-i18n="ai_drawer_subtitle">Official Portal Assistant • 24x7</p>
+                </div>
+            </div>
+            <button onclick="toggleAiBot()" class="text-slate-400 hover:text-white font-bold text-sm w-6 h-6 flex items-center justify-center rounded-full bg-slate-800">✕</button>
+        </div>
+
+        <div id="aiChatArea" class="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs bg-slate-50">
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 text-slate-800 space-y-1">
+                <p class="font-bold text-slate-900" data-i18n="ai_greeting_title">Namaste! 🙏</p>
+                <p data-i18n="ai_greeting_body">I am your official AI assistant. How may I help you with home service booking, standard rates, artisan registration, or emergency assistance in Ghaziabad today?</p>
+            </div>
+        </div>
+
+        <!-- Voice Status Note -->
+        <div id="voiceStatusNote" class="text-[10px] text-emerald-800 font-bold px-3 py-1 bg-emerald-50 hidden"></div>
+
+        <div class="p-2 bg-slate-100 border-t border-slate-200 flex flex-wrap gap-1.5 text-[10px]">
+            <button onclick="sendQuickMessage('How to book 30 plumbers for company project?')" class="bg-white hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border" data-i18n="ai_quick_bulk">🏢 Bulk Workforce</button>
+            <button onclick="sendQuickMessage('How to estimate packers and movers luggage?')" class="bg-white hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border" data-i18n="ai_quick_movers">📦 Movers Estimator</button>
+            <button onclick="sendQuickMessage('What are the wholesale spare parts prices in Sahakar Mandi?')" class="bg-white hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border" data-i18n="ai_quick_parts">🔩 Spare Parts</button>
+            <button onclick="sendQuickMessage(getI18n('ai_quick_sos'))" class="bg-white hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border" data-i18n="ai_quick_sos">🚨 Emergency SOS</button>
+        </div>
+
+        <!-- Input Bar with Voice Input (🎙️) & File Upload (📎) -->
+        <form onsubmit="handleAiChatSubmit(event)" class="p-2 bg-white border-t border-slate-200 flex items-center space-x-1.5">
+            <label class="cursor-pointer p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600" title="Attach Photo or Document">
+                <i class="fa-solid fa-paperclip text-xs"></i>
+                <input type="file" id="aiFileInput" class="hidden" onchange="handleAiFileAttached(this)">
+            </label>
+
+            <button type="button" onclick="activateAiVoice('aiInputText')" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg border border-amber-300" title="Speak in Any State Language (10 Languages)">
+                <i class="fa-solid fa-microphone text-xs"></i>
+            </button>
+
+            <input type="text" id="aiInputText" placeholder="Type or speak query..." class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none">
+
+            <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs p-2 rounded-lg transition">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- SCRIPT -->
+    <script src="/static/js/translations.js"></script>
+    <script>
+        function handleHeroSearch() {
+            const cat = document.getElementById('heroCategory').value;
+            const loc = document.getElementById('heroLocality').value;
+            if (cat === 'Emergency SOS') {
+                window.location.href = `/customer?emergency=true&locality=${encodeURIComponent(loc)}`;
+            } else {
+                window.location.href = `/customer?cat=${encodeURIComponent(cat)}&locality=${encodeURIComponent(loc)}`;
+            }
+        }
+
+        // Live Fair Wage Policy Simulation Handler (Feature 3)
+        function updateWageSimulation(fee) {
+            const total = parseFloat(fee);
+            document.getElementById('simFeeDisplay').innerText = `Customer Pays: ₹${total.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            document.getElementById('simWorkerTakeHome').innerText = `₹${(total * 0.85).toFixed(2)}`;
+            document.getElementById('simPlatformOps').innerText = `₹${(total * 0.12).toFixed(2)}`;
+            document.getElementById('simWelfareFund').innerText = `₹${(total * 0.03).toFixed(2)}`;
+        }
+
+        // Interactive District Locality Explorer Handler (Feature 3)
+        function selectSectorNode(name, count, time) {
+            document.getElementById('sectorName').innerText = `${name} Sector Hub`;
+            document.getElementById('sectorStats').innerText = `⚡ ${count} Verified Active Artisans • Avg Arrival: ${time} • 24x7 SOS Active`;
+            document.getElementById('sectorBookBtn').innerText = `Book Artisans in ${name} →`;
+            document.getElementById('sectorBookBtn').href = `/customer?locality=${encodeURIComponent(name)}`;
+
+            document.querySelectorAll('.sector-card').forEach(c => {
+                if (c.innerText.includes(name)) {
+                    c.className = 'sector-card p-3 bg-white hover:bg-amber-50 border-2 border-amber-500 rounded-xl cursor-pointer transition shadow-sm';
+                } else {
+                    c.className = 'sector-card p-3 bg-white hover:bg-amber-50 border border-slate-200 rounded-xl cursor-pointer transition shadow-sm';
+                }
+            });
+        }
+
+        function calculateBulkCost() {
+            const count = parseInt(document.getElementById('bulkCount').value);
+            const days = parseInt(document.getElementById('bulkDays').value) || 1;
+            const dailyRate = 650.0;
+            const total = count * days * dailyRate;
+            document.getElementById('bulkTotalDisplay').innerText = `₹${total.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        }
+
+        async function handleBulkBookingSubmit(e) {
+            e.preventDefault();
+            const count = parseInt(document.getElementById('bulkCount').value);
+            const days = parseInt(document.getElementById('bulkDays').value) || 1;
+            const trade = document.getElementById('bulkTrade').value;
+            const company = document.getElementById('bulkCompany').value;
+            const phone = document.getElementById('bulkPhone').value;
+
+            try {
+                const res = await fetch('/api/bookings/bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category: trade,
+                        worker_count: count,
+                        days_count: days,
+                        company_name: company,
+                        contact_phone: phone
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert(`✅ Bulk Contract Confirmed!\nContract ID: ${data.contract_id}\n${count} ${trade} artisans assigned. Lead supervisor will call within 30 minutes.`);
+                }
+            } catch(err) {
+                console.error("Bulk error", err);
+            }
+        }
+
+        function toggleAiBot() {
+            const drawer = document.getElementById('aiBotDrawer');
+            const launcher = document.getElementById('aiBotLauncher');
+            if (drawer.classList.contains('hidden')) {
+                drawer.classList.remove('hidden');
+                launcher.classList.add('hidden');
+            } else {
+                drawer.classList.add('hidden');
+                launcher.classList.remove('hidden');
+            }
+        }
+
+        function sendQuickMessage(txt) {
+            document.getElementById('aiInputText').value = txt;
+            handleAiChatSubmit(new Event('submit'));
+        }
+
+        function handleAiFileAttached(input) {
+            if (input.files && input.files[0]) {
+                const note = document.getElementById('voiceStatusNote');
+                note.innerText = `📎 Attached file: ${input.files[0].name}`;
+                note.classList.remove('hidden');
+            }
+        }
+
+        function activateAiVoice(inputId) {
+            startVoiceRecognition(inputId, (statusText) => {
+                const note = document.getElementById('voiceStatusNote');
+                if (statusText) {
+                    note.innerText = `🎙️ ${statusText}`;
+                    note.classList.remove('hidden');
+                } else {
+                    note.classList.add('hidden');
+                }
+            });
+        }
+
+        async function handleAiChatSubmit(e) {
+            if (e) e.preventDefault();
+            const input = document.getElementById('aiInputText');
+            const text = input.value.trim();
+            const fileInput = document.getElementById('aiFileInput');
+            const hasFile = fileInput.files && fileInput.files[0];
+
+            if (!text && !hasFile) return;
+
+            const chat = document.getElementById('aiChatArea');
+            
+            const userMsg = document.createElement('div');
+            userMsg.className = 'bg-amber-600 text-white p-2.5 rounded-xl ml-6 text-right shadow-sm';
+            userMsg.innerText = text + (hasFile ? `\n[📎 ${fileInput.files[0].name}]` : '');
+            chat.appendChild(userMsg);
+            input.value = '';
+            chat.scrollTop = chat.scrollHeight;
+
+            const typing = document.createElement('div');
+            typing.className = 'bg-white p-2.5 rounded-xl border border-slate-200 text-slate-500 italic mr-6';
+            typing.innerText = 'Sahakar AI is analyzing...';
+            chat.appendChild(typing);
+            chat.scrollTop = chat.scrollHeight;
+
+            const formData = new FormData();
+            formData.append('message', text);
+            if (hasFile) formData.append('file', fileInput.files[0]);
+
+            try {
+                const res = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                chat.removeChild(typing);
+
+                const botMsg = document.createElement('div');
+                botMsg.className = 'bg-white p-3 rounded-xl shadow-sm border border-slate-200 text-slate-800 mr-4 whitespace-pre-line leading-relaxed';
+                botMsg.innerText = data.reply;
+                chat.appendChild(botMsg);
+                chat.scrollTop = chat.scrollHeight;
+                fileInput.value = '';
+                document.getElementById('voiceStatusNote').classList.add('hidden');
+            } catch(err) {
+                chat.removeChild(typing);
+                const botMsg = document.createElement('div');
+                botMsg.className = 'bg-rose-50 text-rose-800 p-2.5 rounded-xl border border-rose-200 mr-4';
+                botMsg.innerText = 'Could not connect to AI service. Please try again.';
+                chat.appendChild(botMsg);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const map = L.map('heroRadarMap', { zoomControl: false, attributionControl: false }).setView([28.6692, 77.4538], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+
+            const workers = [
+                { name: "Ramesh Kumar", trade: "⚡ Electrician", lat: 28.6852, lng: 77.4421, loc: "Raj Nagar" },
+                { name: "Suresh Sharma", trade: "🔧 Plumber", lat: 28.6380, lng: 77.3685, loc: "Indirapuram" },
+                { name: "Kailash Mistri", trade: "🧱 Raj Mistri", lat: 28.6710, lng: 77.4520, loc: "Kavi Nagar" },
+                { name: "Mukesh Yadav", trade: "📦 Packers Movers", lat: 28.6483, lng: 77.3392, loc: "Vaishali" }
+            ];
+
+            const customIcon = L.divIcon({
+                className: 'custom-pin',
+                html: '<div style="background: #0F2942; color: #F59E0B; border: 2px solid white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🛠️</div>',
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
+            });
+
+            workers.forEach(w => {
+                L.marker([w.lat, w.lng], { icon: customIcon })
+                    .addTo(map)
+                    .bindPopup(`<b>${w.name}</b><br>${w.trade}<br><span style="color:#0F2942;font-size:10px;font-weight:bold;">${w.loc} • Verified</span>`);
+            });
+        });
+    </script>
+</body>
+</html>

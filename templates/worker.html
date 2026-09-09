@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SahakarConnect - Cooperative Artisan Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Sans+Kannada:wght@400;500;600;700&display=swap');
+        body { 
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', 'Noto Sans Kannada', sans-serif;
+            background-color: #F8FAFC;
+        }
+        .tricolor-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #FF9933 0%, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%, #138808 100%);
+        }
+    </style>
+</head>
+<body class="text-slate-900 antialiased min-h-screen relative">
+    
+    <!-- Tricolor Bar -->
+    <div class="tricolor-bar"></div>
+
+    <!-- Toast Notification Banner Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white px-4 py-3 shadow sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
+            <a href="/" class="flex items-center space-x-2.5">
+                <img src="/static/logo.svg" onerror="this.src='/static/logo.png'" alt="Sahakar Emblem" class="w-8 h-8 object-contain">
+                <div>
+                    <span class="text-sm font-black text-white">Sahakar<span class="text-amber-400">Worker</span></span>
+                    <p class="text-[9px] text-slate-400" data-i18n="worker_portal_title">Artisan Service Portal</p>
+                </div>
+            </a>
+
+            <!-- AI Helper Launcher, Auth & Availability -->
+            <div class="flex items-center gap-2 flex-wrap justify-end">
+                <select id="globalLangSelect" onchange="applyLanguage(this.value)" aria-label="Select Language" class="bg-slate-800 text-amber-300 text-[11px] font-bold rounded px-2.0 py-2.0 border border-slate-700 focus:outline-none cursor-pointer">
+                    <option value="en">English (EN)</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="bho">भोजपुरी (Bhojpuri)</option>
+                    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                    <option value="bn">বাংলা (Bengali)</option>
+                    <option value="gu">ગુજરાતી (Gujarati)</option>
+                    <option value="mr">मराठी (Marathi)</option>
+                    <option value="ta">தமிழ் (Tamil)</option>
+                    <option value="te">తెలుగు (Telugu)</option>
+                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                </select>
+
+                <button onclick="toggleWorkerAiDrawer()" aria-label="Open AI Tech Assistant" class="px-2 py-2.0 rounded bg-indigo-900 hover:bg-indigo-800 text-amber-300 text-[11px] font-bold border border-indigo-700 flex items-center space-x-1">
+                    <span data-i18n="worker_guru_btn">🤖 Guru</span>
+                </button>
+
+                <div id="workerAuthBlock" class="flex items-center space-x-1 text-xs">
+                    <a id="workerLoginLink" href="/worker/login" class="px-2 py-2.0 rounded bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px]">
+                        Sign In
+                    </a>
+                    <button id="workerLogoutBtn" onclick="handleWorkerLogout()" class="hidden text-[10px] text-rose-400 hover:underline font-bold pl-1">
+                        Logout
+                    </button>
+                </div>
+
+                <div class="flex items-center space-x-1 pl-1.5 border-l border-slate-700">
+                    <span class="text-xs font-bold text-slate-300" id="availText" data-i18n="worker_online">Online</span>
+                    <input type="checkbox" id="availToggle" checked onchange="toggleOnlineStatus()" aria-label="Toggle Online Status" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 space-y-4">
+        
+        <!-- Profile Card with Clickable Detailed Credentials Modal -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3 cursor-pointer hover:border-slate-400 transition" onclick="openWorkerMyProfileModal()">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-xl bg-slate-800 text-amber-400 font-bold flex items-center justify-center text-lg" id="workerAvatar">
+                    RK
+                </div>
+                <div class="space-y-0.5 flex-1">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <h3 class="text-sm font-bold text-slate-900" id="workerName">Ramesh Kumar</h3>
+                            <span class="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded border border-emerald-300" data-i18n="status_verified">Verified ✅</span>
+                        </div>
+                        <span id="proBadge" class="hidden text-[9px] bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.2 rounded">PRO GUILD ★</span>
+                    </div>
+                    <p class="text-xs text-slate-600" id="workerTrade">⚡ Residential Wiring, Inverter & MCB Repair (8 yrs exp)</p>
+                    <p class="text-[10px] text-slate-500" id="workerSociety">Raj Nagar Artisans Sahakari Samiti</p>
+                </div>
+            </div>
+
+            <div class="pt-2.5 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <span class="text-[9px] text-slate-400 font-bold uppercase" data-i18n="worker_qual_label">Qualification</span>
+                    <p class="font-bold text-slate-800 text-[11px]" id="workerQual">ITI Electrician (NCVT), Skill India Gold</p>
+                </div>
+                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <span class="text-[9px] text-slate-400 font-bold uppercase" data-i18n="worker_welfare_label">Welfare & Insurance ID</span>
+                    <p class="font-mono font-bold text-slate-900 text-[11px]" id="workerWelfareId">COOP-WLF-GZB-01</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-between items-center text-[10px] text-indigo-700 font-bold pt-1">
+                <span>⭐ View Detailed Reviews & Rating Score (16 Reviews)</span>
+                <span>Tap to Open ↗</span>
+            </div>
+        </div>
+
+        <!-- INCOMING DISPATCH POOL WITH MANUAL CHOOSE & DECLINE OPTIONS -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-base">📋</span>
+                    <h4 class="text-xs font-bold uppercase text-slate-800" data-i18n="worker_queue_title">Incoming Dispatch Requests</h4>
+                </div>
+                <span id="queueBadge" class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">3 Pending</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Choose which service request you want to accept or decline with zero penalty.</p>
+            
+            <!-- Clean Vertical Request Decision Cards Container -->
+            <div id="workerQueueList" class="space-y-3 max-h-96 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- ACTIVE DISPATCH CARD WITH CUSTOMER DESTINATION ROUTE MAP -->
+        <div id="jobCard" class="bg-white p-4 rounded-2xl shadow-sm border-2 border-amber-500 space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] uppercase font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200" data-i18n="worker_active_job_tag">
+                    🚨 Active Assigned Job
+                </span>
+                <span class="text-base font-black text-slate-900" id="jobFare">₹350.00</span>
+            </div>
+            
+            <div class="space-y-1">
+                <h4 class="text-xs font-bold text-slate-900" id="jobCategory">Electrician Service (on_demand)</h4>
+                <p class="text-xs text-slate-700" id="jobAddress">Flat 402, Shipra Sun City, Indirapuram, Ghaziabad</p>
+                <p class="text-[11px] text-slate-500" id="jobCustomerInfo">Customer: Aditya Pandey (Ph: 9876543210)</p>
+                <div id="jobAddonsInfo" class="text-[10px] text-emerald-800 font-bold pt-0.5 space-y-0.5"></div>
+            </div>
+
+            <!-- Embedded Customer Destination Map -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-[10px]">
+                    <span class="font-bold text-slate-600 uppercase">📍 Customer Destination Route</span>
+                    <a id="gmapsNavBtn" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" class="font-bold text-indigo-700 hover:underline flex items-center">
+                        <i class="fa-solid fa-diamond-turn-right mr-1 text-emerald-600"></i> Open in Google Maps
+                    </a>
+                </div>
+                <div id="workerDestMap" class="h-44 w-full rounded-xl border border-slate-200 overflow-hidden relative z-0"></div>
+            </div>
+
+            <!-- Society Gatepass Card & Guild Buddy Request Bar -->
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <button onclick="viewArtisanGatepass()" class="text-indigo-700 font-bold hover:underline flex items-center">
+                    <i class="fa-solid fa-qrcode mr-1"></i> Society Gatepass
+                </button>
+                <button onclick="requestGuildBuddy()" id="btnGuildBuddy" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-[11px] px-2.5 py-1 rounded-lg transition">
+                    🤝 Call Guild Buddy (2-Person Job)
+                </button>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 space-y-2" id="actionPanel">
+                <button onclick="updateJobState('en_route')" id="btnEnRoute" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg text-xs transition">
+                    <i class="fa-solid fa-route mr-1"></i> <span data-i18n="worker_btn_start_trip">Start Trip (Mark En Route)</span>
+                </button>
+                <button onclick="updateJobState('in_progress')" id="btnProgress" class="hidden w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-lg text-xs transition">
+                    <i class="fa-solid fa-location-dot mr-1"></i> <span data-i18n="worker_btn_arrived">Arrived at Location & Start Work</span>
+                </button>
+                <button onclick="updateJobState('completed')" id="btnComplete" class="hidden w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition">
+                    <i class="fa-solid fa-circle-check mr-1"></i> <span data-i18n="worker_btn_complete">Complete Job & Settle Wages (85%)</span>
+                </button>
+
+                <!-- Worker Cancellation Button (Zero Fine for Worker) -->
+                <button onclick="promptWorkerCancellation()" class="w-full bg-slate-100 hover:bg-rose-50 text-rose-700 font-bold py-2 rounded-lg text-[11px] border border-slate-200 transition">
+                    ✕ Decline / Cancel Job (Zero Penalty for Artisan)
+                </button>
+            </div>
+        </div>
+
+        <!-- SKILL UPGRADATION & EXAMINATION ACADEMY -->
+        <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-4 rounded-2xl shadow-sm space-y-2.5">
+            <div class="flex justify-between items-start">
+                <div>
+                    <span class="text-[9px] uppercase font-bold text-amber-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-700">Skill India Certified</span>
+                    <h4 class="text-xs font-bold text-white mt-1">🎓 Skill Upgradation & Examination Academy</h4>
+                    <p class="text-[10px] text-slate-300">Take trade exams to unlock advanced badges, solar certifications & 1.35x algorithm dispatch priority.</p>
+                </div>
+                <span class="text-xl">🏆</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="openExamModal('Level 2 Smart Home Automation & IoT Wiring')" class="bg-indigo-800 hover:bg-indigo-700 text-amber-300 font-bold p-2 rounded-xl text-[10px] text-left border border-indigo-600 transition">
+                    ⚡ Smart IoT & Automation Exam →
+                </button>
+                <button onclick="openExamModal('Solar Inverter & High Voltage Battery Systems')" class="bg-indigo-800 hover:bg-indigo-700 text-amber-300 font-bold p-2 rounded-xl text-[10px] text-left border border-indigo-600 transition">
+                    ☀️ Solar Inverter Certified Exam →
+                </button>
+            </div>
+        </div>
+
+        <!-- SAHAKAR PRO ARTISAN GUILD SUBSCRIPTION -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-amber-400 space-y-2">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">⭐</span>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-900">Sahakar Pro Artisan Subscription</h4>
+                        <p class="text-[10px] text-slate-500">₹149/mo • 1.5x Search Ranking Boost • 0% Ops Fee on first 10 jobs</p>
+                    </div>
+                </div>
+                <button onclick="subscribeWorkerPro()" id="btnSubscribePro" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm transition">
+                    Upgrade Pro
+                </button>
+            </div>
+        </div>
+
+        <!-- Earnings Summary (85% Worker Share / 12% Platform / 3% Welfare) -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2.5">
+            <div class="flex justify-between items-center">
+                <h4 class="text-xs font-bold uppercase text-slate-600" data-i18n="worker_earnings_title">Earnings & Welfare Fund</h4>
+                <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded" data-i18n="nav_wage_share">85% Worker Share</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 text-center">
+                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                    <span class="text-[10px] text-slate-500" data-i18n="worker_take_home">Direct Take-Home</span>
+                    <p class="text-base font-black text-slate-900" id="netEarningsDisplay">₹1,190.00</p>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                    <span class="text-[10px] text-slate-500" data-i18n="worker_welfare_pool">Welfare Pool (3%)</span>
+                    <p class="text-base font-black text-slate-900" id="welfareDisplay">₹42.00</p>
+                </div>
+            </div>
+            <p class="text-[10px] text-slate-400 text-center" data-i18n="worker_ledger_note">Settlements are officially registered in the cooperative wage registry with 85% worker payout, 12% ops & 3% welfare fund.</p>
+        </div>
+
+        <!-- Artisan Registration Button -->
+        <div class="bg-white p-3.5 rounded-2xl border border-dashed border-slate-300 text-center space-y-1.5">
+            <p class="text-xs font-bold text-slate-700" data-i18n="worker_know_artisan">Know another skilled artisan in Ghaziabad?</p>
+            <button onclick="openRegisterModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-3.5 rounded-lg transition" data-i18n="worker_btn_open_reg">
+                + Register New Artisan Profile
+            </button>
+        </div>
+
+    </main>
+
+    <!-- WORKER'S OWN DETAILED RATINGS & REVIEWS MODAL -->
+    <div id="workerMyProfileModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-md w-full rounded-2xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+            <div class="flex justify-between items-start pb-2 border-b border-slate-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-xl bg-slate-800 text-amber-400 font-bold flex items-center justify-center text-lg" id="modalWorkerAvatar">
+                        RK
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900" id="modalWorkerName">Ramesh Kumar</h3>
+                        <p class="text-[11px] text-slate-600" id="modalWorkerQual">ITI Electrician (NCVT)</p>
+                        <p class="text-[10px] text-slate-500" id="modalWorkerWelfare">Welfare ID: COOP-WLF-GZB-01</p>
+                    </div>
+                </div>
+                <button onclick="closeWorkerMyProfileModal()" aria-label="Close Profile Modal" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+
+            <!-- Star Breakdown Card -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 font-mono">
+                <div class="flex justify-between items-center text-slate-800 font-bold text-xs">
+                    <span>Overall Rating Score</span>
+                    <span class="text-amber-600 text-sm" id="modalRatingAvg">⭐ 4.92 / 5.0</span>
+                </div>
+                <div class="space-y-1 text-[10px] text-slate-600 pt-1 border-t border-slate-200">
+                    <div class="flex justify-between"><span>5 Stars:</span><span id="star5Count">14 reviews</span></div>
+                    <div class="flex justify-between"><span>4 Stars:</span><span id="star4Count">2 reviews</span></div>
+                    <div class="flex justify-between"><span>3 Stars:</span><span>0 reviews</span></div>
+                </div>
+            </div>
+
+            <!-- Certifications -->
+            <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
+                <span class="text-[10px] font-bold text-emerald-900 uppercase">🏆 Earned Skill Certifications</span>
+                <p class="text-[11px] text-emerald-800 font-semibold" id="modalCerts">Skill India Gold Certified Craftsman</p>
+            </div>
+
+            <!-- Reviews List -->
+            <div class="space-y-2">
+                <h4 class="font-bold text-slate-800 uppercase">Recent Citizen Review Comments</h4>
+                <div id="modalReviewsList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+            </div>
+
+            <button onclick="closeWorkerMyProfileModal()" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg">
+                Close Profile
+            </button>
+        </div>
+    </div>
+
+    <!-- SKILL EXAMINATION MODAL -->
+    <div id="skillExamModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-md w-full rounded-2xl p-5 shadow-2xl space-y-3.5 max-h-[90vh] overflow-y-auto text-xs">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                <div>
+                    <h3 class="font-bold text-slate-900 text-sm" id="examTitleHeading">Trade Skill Assessment Exam</h3>
+                    <p class="text-[10px] text-slate-500">Government Skill India Upgradation Test</p>
+                </div>
+                <button onclick="closeExamModal()" aria-label="Close Exam Modal" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+
+            <form onsubmit="handleExamSubmit(event)" class="space-y-3 text-slate-700">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                    <p class="font-bold text-slate-900">Q1. What is the minimum recommended copper wire gauge for a 2kW Inverter battery DC setup?</p>
+                    <label class="block"><input type="radio" name="q1" value="a" required> A) 1.5 sq mm</label>
+                    <label class="block"><input type="radio" name="q1" value="b"> B) 10.0 to 16.0 sq mm Flexible Copper Cable</label>
+                    <label class="block"><input type="radio" name="q1" value="c"> C) 0.75 sq mm Aluminum wire</label>
+                </div>
+
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                    <p class="font-bold text-slate-900">Q2. What is the standard mortar mix ratio for 9-inch load-bearing brick masonry?</p>
+                    <label class="block"><input type="radio" name="q2" value="a" required> A) 1:6 (1 part Cement : 6 parts Coarse Sand)</label>
+                    <label class="block"><input type="radio" name="q2" value="b"> B) 1:12 Lean sand</label>
+                    <label class="block"><input type="radio" name="q2" value="c"> C) Pure cement paste</label>
+                </div>
+
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                    <p class="font-bold text-slate-900">Q3. What is the normal running suction pressure for R-32 eco-refrigerant split AC?</p>
+                    <label class="block"><input type="radio" name="q3" value="a" required> A) 40–50 PSI</label>
+                    <label class="block"><input type="radio" name="q3" value="b"> B) 110–125 PSI</label>
+                    <label class="block"><input type="radio" name="q3" value="c"> C) 350 PSI</label>
+                </div>
+
+                <button type="submit" id="btnSubmitExam" class="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2.5 rounded-lg transition shadow">
+                    Submit Exam & Verify Score
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- WORKER AI TASK HELPER DRAWER -->
+    <div id="workerAiDrawer" class="fixed inset-y-0 right-0 max-w-sm w-full bg-white shadow-2xl z-50 hidden flex flex-col border-l border-slate-300 text-xs">
+        <div class="bg-slate-900 text-white p-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-lg">👷‍♂️</span>
+                <div>
+                    <h3 class="font-bold text-amber-300">कारीगर गुरु (Worker AI Tech Helper)</h3>
+                    <p class="text-[10px] text-slate-400">Instant Technical Specs & Wiring Codes</p>
+                </div>
+            </div>
+            <button onclick="toggleWorkerAiDrawer()" aria-label="Close AI Helper Drawer" class="text-slate-400 hover:text-white font-bold text-sm w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center">✕</button>
+        </div>
+
+        <div id="workerAiChat" class="flex-1 p-3 overflow-y-auto space-y-2.5 bg-slate-50">
+            <div class="bg-white p-3 rounded-xl border border-slate-200 text-slate-800 space-y-1 shadow-sm">
+                <p class="font-bold text-slate-900">नमस्ते! 🙏</p>
+                <p>काम के दौरान किसी भी तकनीकी जानकारी के लिए मुझसे पूछें या फोटो/वीडियो अपलोड करें। जैसे: एसी का सॉकेट, तार का गेज, सीमेंट-रेत का अनुपात या गैस का प्रेशर।</p>
+            </div>
+        </div>
+
+        <div id="workerVoiceStatus" class="text-[10px] text-emerald-800 font-bold px-3 py-1 bg-emerald-50 hidden"></div>
+
+        <div class="p-2 bg-slate-100 border-t border-slate-200 flex flex-wrap gap-1.5 text-[10px]">
+            <button onclick="sendWorkerAiQuery('Which socket and wire size for 1.5 ton AC?')" class="bg-white hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border">⚡ 1.5-Ton AC Socket</button>
+            <button onclick="sendWorkerAiQuery('What is the mortar mix ratio for 9-inch brickwork?')" class="bg-white hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border">🧱 Brickwork Mortar Mix</button>
+            <button onclick="sendWorkerAiQuery('Geyser inlet outlet pipe pressure rating?')" class="bg-white hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border">🔧 Geyser Pipe Safety</button>
+            <button onclick="sendWorkerAiQuery('R32 vs R410A standing and running pressure?')" class="bg-white hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border">❄️ AC Gas Pressures</button>
+        </div>
+
+        <form onsubmit="handleWorkerAiSubmit(event)" class="p-2 bg-white border-t border-slate-200 flex items-center space-x-1.5">
+            <label class="cursor-pointer p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600" title="Upload Photo or Video of Worksite/Equipment">
+                <i class="fa-solid fa-camera text-xs"></i>
+                <input type="file" id="workerAiFile" accept="image/*,video/*" class="hidden" onchange="handleWorkerFileSelected(this)">
+            </label>
+
+            <button type="button" onclick="activateWorkerVoice()" aria-label="Activate Voice Assistant" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg border border-amber-300" title="Speak in Hindi/English">
+                <i class="fa-solid fa-microphone text-xs"></i>
+            </button>
+
+            <input type="text" id="workerAiInput" placeholder="Ask question or speak..." class="flex-1 bg-slate-50 border border-slate-300 rounded p-1.5 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none">
+            
+            <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded text-xs">
+                Send
+            </button>
+        </form>
+    </div>
+
+    <!-- SOCIETY GATEPASS MODAL FOR ARTISAN -->
+    <div id="artisanGatepassModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-sm w-full rounded-2xl p-5 shadow-xl space-y-3 text-xs">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                <h3 class="font-bold text-slate-900">🏢 Society Entry Gatepass</h3>
+                <button onclick="closeArtisanGatepass()" aria-label="Close Gatepass Modal" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+            <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-xl text-center space-y-1">
+                <span class="text-xs font-bold text-indigo-900">Pre-Verified Resident Society Entry</span>
+                <p class="text-xl font-mono font-black text-indigo-700">GZB-GATE-222222</p>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">✓ Police & Aadhaar Verified</span>
+            </div>
+            <p class="text-slate-600 text-[11px]">Show this pass to security at Shipra Sun City / Gaur / ATS society main gate for instant entry.</p>
+        </div>
+    </div>
+
+    <!-- ARTISAN REGISTRATION MODAL -->
+    <div id="registerModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-md w-full rounded-2xl p-5 shadow-2xl space-y-3.5 max-h-[90vh] overflow-y-auto text-xs">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                <div>
+                    <h3 class="font-bold text-slate-900 text-sm" data-i18n="reg_modal_title">Artisan Cooperative Registration</h3>
+                    <p class="text-[10px] text-slate-500" data-i18n="reg_modal_subtitle">Join the Ghaziabad Artisan Federation</p>
+                </div>
+                <button onclick="closeRegisterModal()" aria-label="Close Registration Modal" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+
+            <div id="regAlertBox" class="hidden p-2.5 rounded-lg text-[11px] font-semibold"></div>
+
+            <form onsubmit="handleRegisterWorkerSubmit(event)" class="space-y-3 text-slate-700" id="regWorkerForm" enctype="multipart/form-data">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1" data-i18n="reg_full_name">Full Name</label>
+                    <input type="text" id="regWorkerName" required placeholder="e.g. Shyam Sundar" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1" data-i18n="reg_phone">Mobile Phone Number</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 font-bold">+91</span>
+                        <input type="tel" id="regWorkerPhone" required placeholder="9811000015" class="w-full pl-12 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs font-bold">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1" data-i18n="reg_trade">Trade Category</label>
+                        <select id="regWorkerTrade" class="w-full px-2.5 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs">
+                            <option value="Electrician">Electrician</option>
+                            <option value="Plumber">Plumber</option>
+                            <option value="Carpenter">Carpenter</option>
+                            <option value="Appliance Repair">Appliance Repair</option>
+                            <option value="Construction Mistri">Construction Mistri</option>
+                            <option value="General Labour">General Labour</option>
+                            <option value="Packers Movers">Packers Movers</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1" data-i18n="reg_society">Ghaziabad Society</label>
+                        <select id="regWorkerSociety" class="w-full px-2.5 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs">
+                            <option value="Raj Nagar Artisans Sahakari Samiti">Raj Nagar</option>
+                            <option value="Trans-Hindon Shramik Cooperative">Indirapuram</option>
+                            <option value="Vaishali Skill Workers Federation">Vaishali</option>
+                            <option value="Vasundhara Cooperative Guild">Vasundhara</option>
+                            <option value="Ghaziabad Central Artisan Union">Kavi Nagar</option>
+                            <option value="Crossings Technical Workers Sahakari">Crossings Republik</option>
+                            <option value="North Ghaziabad Shramik Federation">Raj Nagar Extn</option>
+                            <option value="Kaushambi Household Services Guild">Kaushambi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1" data-i18n="reg_spec">Trade Specialization</label>
+                    <input type="text" id="regWorkerSpec" placeholder="e.g. Inverter Wiring, MCB, 3-Phase Panels" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1" data-i18n="reg_qual">Qualification / Certificate Title</label>
+                    <input type="text" id="regWorkerQual" placeholder="e.g. ITI Electrician (NCVT), Skill India Gold" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Account Password</label>
+                    <input type="password" id="regWorkerPassword" placeholder="Create password (default: worker123)" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-0.5" data-i18n="reg_upload_label">📄 Upload Skill Certificate / Trade ID Document</label>
+                    <p class="text-[10px] text-slate-400 mb-1" data-i18n="reg_upload_desc">Upload Aadhaar card, ITI certificate, or trade proof (PDF / JPG / PNG, max 10MB).</p>
+                    <input type="file" id="regWorkerDoc" accept=".pdf,.jpg,.jpeg,.png,.webp" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer">
+                </div>
+
+                <button type="submit" id="btnSubmitWorkerReg" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-lg transition shadow text-xs" data-i18n="reg_btn_submit">
+                    Submit for Federation Verification
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script src="/static/js/translations.js"></script>
+    <script>
+        // Global HTML Entity Sanitizer to prevent XSS
+        function escapeHtml(str) {
+            if (!str && str !== 0) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        let currentWorkerId = "11111111-1111-1111-1111-111111111111";
+        let currentBookingId = null;
+        let destMap = null, destMarker = null, workerPin = null;
+        let selectedExamTitle = "";
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkWorkerSession();
+            fetchWorkerProfile();
+            fetchActiveJob();
+            fetchDispatchQueue();
+            initDestMap();
+            
+            // Auto open registration modal if requested via URL param
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('register') === 'true' || urlParams.get('action') === 'register') {
+                openRegisterModal();
+            }
+        });
+
+        function showToastAlert(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-800' : (type === 'danger' ? 'bg-rose-800' : 'bg-slate-900');
+            toast.className = `${bgClass} text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 pointer-events-auto transform transition duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `<span>🔔</span><span class="flex-1">${escapeHtml(message)}</span><button onclick="this.parentElement.remove()" class="text-slate-300 font-bold ml-2">✕</button>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 6000);
+        }
+
+        function checkWorkerSession() {
+            const workerData = localStorage.getItem('sahakar_worker');
+            if (workerData) {
+                try {
+                    const w = JSON.parse(workerData);
+                    currentWorkerId = w.id || currentWorkerId;
+                    document.getElementById('workerLoginLink').classList.add('hidden');
+                    document.getElementById('workerLogoutBtn').classList.remove('hidden');
+                    if (w.is_pro_subscriber) {
+                        document.getElementById('proBadge').classList.remove('hidden');
+                    }
+                } catch(e) {}
+            }
+        }
+
+        function handleWorkerLogout() {
+            localStorage.removeItem('sahakar_worker');
+            window.location.href = '/worker/login';
+        }
+
+        function initDestMap() {
+            const mapEl = document.getElementById('workerDestMap');
+            if (!mapEl) return;
+            try {
+                destMap = L.map('workerDestMap', { zoomControl: false, attributionControl: false }).setView([28.6380, 77.3685], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(destMap);
+
+                workerPin = L.marker([28.6852, 77.4421]).addTo(destMap).bindPopup("<b>You (Artisan)</b>");
+                destMarker = L.marker([28.6380, 77.3685]).addTo(destMap).bindPopup("<b>Customer Address</b>");
+            } catch(e) {
+                console.error("Map init error:", e);
+            }
+        }
+
+        async function fetchWorkerProfile() {
+            try {
+                const res = await fetch(`/api/workers/${currentWorkerId}/profile`);
+                const data = await res.json();
+                if (data.status === 'success' && data.worker) {
+                    const w = data.worker;
+                    const initials = w.full_name ? w.full_name.trim().split(/\s+/).filter(Boolean).map(n=>n[0]).join('') : 'RK';
+                    
+                    document.getElementById('workerName').innerText = w.full_name || 'Artisan';
+                    document.getElementById('modalWorkerName').innerText = w.full_name || 'Artisan';
+                    document.getElementById('workerAvatar').innerText = initials || 'RK';
+                    document.getElementById('modalWorkerAvatar').innerText = initials || 'RK';
+                    document.getElementById('workerTrade').innerText = `⚡ ${w.specialization || 'Trade Services'} (${w.experience_years || 5} yrs exp)`;
+                    document.getElementById('workerSociety').innerText = w.society_name || 'Ghaziabad Union';
+                    document.getElementById('workerQual').innerText = w.qualification || 'ITI Certified';
+                    document.getElementById('modalWorkerQual').innerText = w.qualification || 'ITI Certified';
+                    document.getElementById('workerWelfareId').innerText = w.welfare_id || 'COOP-WLF-GZB-01';
+                    document.getElementById('modalWorkerWelfare').innerText = `Welfare ID: ${w.welfare_id || 'COOP-WLF-GZB-01'}`;
+                    document.getElementById('modalRatingAvg').innerText = `⭐ ${Number(w.rating_avg || 5.0).toFixed(2)} / 5.0`;
+                    document.getElementById('modalCerts').innerText = w.passed_certifications || 'Skill India Certified';
+                    document.getElementById('netEarningsDisplay').innerText = `₹${Number(w.total_net_earnings || 0).toFixed(2)}`;
+                    document.getElementById('welfareDisplay').innerText = `₹${Number(w.total_welfare_accumulated || 0).toFixed(2)}`;
+
+                    if (w.is_pro_subscriber) {
+                        document.getElementById('proBadge').classList.remove('hidden');
+                        document.getElementById('btnSubscribePro').innerText = '✓ Pro Active';
+                        document.getElementById('btnSubscribePro').className = 'bg-emerald-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg';
+                    }
+
+                    if (w.star_counts) {
+                        document.getElementById('star5Count').innerText = `${w.star_counts[5] || 14} reviews`;
+                        document.getElementById('star4Count').innerText = `${w.star_counts[4] || 2} reviews`;
+                    }
+
+                    const list = document.getElementById('modalReviewsList');
+                    list.innerHTML = '';
+                    (w.recent_reviews || []).forEach(r => {
+                        const div = document.createElement('div');
+                        div.className = 'bg-slate-50 p-2 rounded-lg border border-slate-200';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-800">${escapeHtml(r.customer_name)}</span>
+                                <span class="text-amber-600 font-bold">⭐ ${escapeHtml(r.rating)}</span>
+                            </div>
+                            <p class="text-slate-600 text-[11px] mt-0.5">${escapeHtml(r.comment)}</p>
+                            <span class="text-[9px] text-slate-400">${escapeHtml(r.date)}</span>
+                        `;
+                        list.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Profile fetch err", e);
+            }
+        }
+
+        async function fetchActiveJob() {
+            try {
+                const res = await fetch(`/api/bookings/active-for-worker/${currentWorkerId}`);
+                const data = await res.json();
+                
+                // Citizen cancellation alert polling
+                if (data.status === 'cancelled_alert' && data.cancellation_info) {
+                    showToastAlert(`⚠️ Service Cancelled: ${data.cancellation_info.message}`, 'danger');
+                    alert(`⚠️ Service Notification:\n${data.cancellation_info.message}`);
+                    location.reload();
+                    return;
+                }
+
+                const jobCard = document.getElementById('jobCard');
+                if (data.has_active_job && data.booking) {
+                    currentBookingId = data.booking.id;
+                    jobCard.classList.remove('hidden');
+                    document.getElementById('jobFare').innerText = `₹${Number(data.booking.fare_amount || 0).toFixed(2)}`;
+                    document.getElementById('jobCategory').innerText = `${escapeHtml(data.booking.category)} Service (${escapeHtml(data.booking.booking_type)})`;
+                    document.getElementById('jobAddress').innerText = data.booking.address || '';
+                    document.getElementById('jobCustomerInfo').innerText = `Customer: ${data.booking.customer_name || 'Resident'} (Ph: ${data.booking.customer_phone || ''})`;
+                    
+                    const gmapsBtn = document.getElementById('gmapsNavBtn');
+                    if (gmapsBtn) {
+                        gmapsBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${data.booking.lat || 28.6380},${data.booking.lng || 77.3685}`;
+                    }
+                    
+                    if (destMap && destMarker) {
+                        destMarker.setLatLng([data.booking.lat || 28.6380, data.booking.lng || 77.3685]);
+                        destMap.setView([data.booking.lat || 28.6380, data.booking.lng || 77.3685], 13);
+                    }
+
+                    let addons = [];
+                    if (data.booking.distance_surcharge > 0) addons.push(`📍 Long-distance travel compensation: +₹${Number(data.booking.distance_surcharge).toFixed(2)}`);
+                    if (data.booking.tip_amount > 0) addons.push(`💚 Customer Tip: +₹${Number(data.booking.tip_amount).toFixed(2)} (100% yours)`);
+                    if (data.booking.has_buddy) addons.push(`🤝 Guild Buddy assigned (50/50 split active)`);
+                    document.getElementById('jobAddonsInfo').innerHTML = addons.map(escapeHtml).join('<br>');
+
+                    document.getElementById('btnEnRoute').classList.add('hidden');
+                    document.getElementById('btnProgress').classList.add('hidden');
+                    document.getElementById('btnComplete').classList.add('hidden');
+
+                    if (data.booking.status === 'assigned') {
+                        document.getElementById('btnEnRoute').classList.remove('hidden');
+                    } else if (data.booking.status === 'en_route') {
+                        document.getElementById('btnProgress').classList.remove('hidden');
+                    } else if (data.booking.status === 'in_progress') {
+                        document.getElementById('btnComplete').classList.remove('hidden');
+                    }
+                } else {
+                    // No active job in progress
+                    currentBookingId = null;
+                    jobCard.classList.add('hidden');
+                }
+            } catch(e) {
+                console.error("Job fetch err", e);
+            }
+        }
+
+        // Non-overlapping vertical dispatch queue with Choose/Accept and Decline Options
+        async function fetchDispatchQueue() {
+            try {
+                const res = await fetch(`/api/bookings/queue-for-worker/${currentWorkerId}`);
+                const data = await res.json();
+                const qList = document.getElementById('workerQueueList');
+                if (!qList) return;
+                qList.innerHTML = '';
+                
+                const requestedCount = (data.queue || []).filter(item => item.status === 'requested').length;
+                const totalCount = (data.queue || []).length;
+                document.getElementById('queueBadge').innerText = `${requestedCount} New (${totalCount} Total)`;
+
+                if (!data.queue || data.queue.length === 0) {
+                    qList.innerHTML = '<p class="text-center text-slate-400 text-xs py-4" data-i18n="worker_no_requests">No pending dispatches in queue.</p>';
+                    return;
+                }
+
+                data.queue.forEach(item => {
+                    const isRequested = (item.status === 'requested');
+                    const workerTakeHome = (Number(item.fare_amount || 0) * 0.85).toFixed(2);
+                    
+                    let typeBadge = `<span class="text-[9px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-bold">${escapeHtml(item.booking_type)}</span>`;
+                    if (item.is_urgent) {
+                        typeBadge = `<span class="text-[9px] bg-rose-100 text-rose-800 border border-rose-300 px-1.5 py-0.5 rounded font-bold">🚨 Emergency SOS (+₹150)</span>`;
+                    } else if (item.scheduled_time) {
+                        typeBadge = `<span class="text-[9px] bg-blue-100 text-blue-800 border border-blue-300 px-1.5 py-0.5 rounded font-bold">📅 ${escapeHtml(item.scheduled_time)}</span>`;
+                    }
+
+                    const div = document.createElement('div');
+                    div.id = `queue-item-${item.id}`;
+                    if (isRequested) {
+                        div.className = 'bg-white p-3.5 rounded-xl border-2 border-indigo-200 shadow-sm space-y-2.5 hover:border-indigo-400 transition';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div class="space-y-0.5">
+                                    <div class="flex items-center space-x-1.5 flex-wrap gap-1">
+                                        <span class="font-bold text-slate-900 text-xs">${escapeHtml(item.category)} Service</span>
+                                        ${typeBadge}
+                                        <span class="text-[9px] bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded font-bold">New Request</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-700 mt-1"><i class="fa-solid fa-location-dot text-indigo-600 mr-1"></i>${escapeHtml(item.address)}</p>
+                                    <p class="text-[10px] text-slate-500">${escapeHtml(item.customer_name)} • <span class="font-semibold text-slate-700">${Number(item.distance_km || 2.5).toFixed(1)} km away</span></p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="font-black text-sm text-slate-900">₹${Number(item.fare_amount || 0).toFixed(2)}</span>
+                                    <span class="block text-[9px] text-emerald-700 font-bold">₹${workerTakeHome} (85% net)</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons to Manually Choose (Accept) or Decline Request -->
+                            <div class="pt-2 border-t border-slate-100 flex items-center space-x-2">
+                                <button onclick="acceptBooking('${item.id}')" aria-label="Accept Request" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3 rounded-lg text-xs transition flex items-center justify-center space-x-1 shadow-sm">
+                                    <i class="fa-solid fa-check mr-1"></i> <span data-i18n="worker_btn_accept_job">Accept & Start Job</span>
+                                </button>
+                                <button onclick="declineBooking('${item.id}')" aria-label="Decline Request" class="bg-slate-100 hover:bg-rose-50 text-rose-700 border border-slate-200 hover:border-rose-300 font-bold py-2 px-3 rounded-lg text-xs transition flex items-center justify-center space-x-1">
+                                    <i class="fa-solid fa-xmark mr-1"></i> <span data-i18n="worker_btn_decline_job">Decline</span>
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        // Assigned / In Progress Queue Item
+                        div.className = 'bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex justify-between items-center';
+                        div.innerHTML = `
+                            <div>
+                                <div class="flex items-center space-x-1.5">
+                                    <span class="font-bold text-slate-900 text-xs">${escapeHtml(item.category)}</span>
+                                    <span class="text-[9px] bg-amber-100 text-amber-800 px-1 py-0.2 rounded font-bold">${escapeHtml(item.status)}</span>
+                                    ${typeBadge}
+                                </div>
+                                <p class="text-[10px] text-slate-600">${escapeHtml(item.address)}</p>
+                                <span class="text-[9px] text-slate-400">${escapeHtml(item.customer_name)} • ${Number(item.distance_km || 2.5).toFixed(1)} km</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-black text-xs text-slate-900">₹${Number(item.fare_amount || 0).toFixed(2)}</span>
+                                <span class="block text-[9px] text-emerald-700 font-bold">₹${workerTakeHome} (85%)</span>
+                            </div>
+                        `;
+                    }
+                    qList.appendChild(div);
+                });
+            } catch(err) {
+                console.error("Queue err", err);
+            }
+        }
+
+        // Accept & Choose specific incoming request
+        async function acceptBooking(bookingId) {
+            try {
+                const res = await fetch(`/api/bookings/${bookingId}/accept`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ worker_id: currentWorkerId })
+                });
+                const data = await res.json();
+                if (res.ok && data.status === 'success') {
+                    showToastAlert(`✓ Request Accepted! Service #${bookingId.slice(0,6).toUpperCase()} is now your active job.`, 'success');
+                    currentBookingId = bookingId;
+                    await fetchActiveJob();
+                    await fetchDispatchQueue();
+                    // Smooth scroll to active job card
+                    const jobCard = document.getElementById('jobCard');
+                    if (jobCard) {
+                        jobCard.scrollIntoView({ behavior: 'smooth' });
+                    }
+                } else {
+                    alert(data.detail || 'Could not accept booking.');
+                }
+            } catch(e) {
+                console.error("Accept booking error", e);
+                showToastAlert('Connection error while accepting job.', 'danger');
+            }
+        }
+
+        // Decline specific incoming request with Zero Penalty
+        async function declineBooking(bookingId) {
+            const confirmed = confirm("Are you sure you want to decline this service request?\n\n✓ ZERO penalty will be charged.\n✓ The system will immediately route the request to another cooperative artisan in Ghaziabad.");
+            if (!confirmed) return;
+
+            try {
+                const res = await fetch(`/api/bookings/${bookingId}/decline`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason: "Artisan opted to decline request from pool (Zero Penalty)" })
+                });
+                const data = await res.json();
+                if (res.ok && data.status === 'success') {
+                    showToastAlert("✕ Request declined with ZERO penalty. Re-routed to nearest peer.", 'info');
+                    await fetchDispatchQueue();
+                    await fetchActiveJob();
+                } else {
+                    alert(data.detail || 'Could not decline booking.');
+                }
+            } catch(e) {
+                console.error("Decline booking error", e);
+                showToastAlert('Connection error while declining job.', 'danger');
+            }
+        }
+
+        // Worker Zero-Penalty Active Job Cancellation Handlers
+        async function promptWorkerCancellation() {
+            if (!currentBookingId) return;
+            const reason = prompt("Enter cancellation reason (e.g., Vehicle breakdown / Personal emergency):", "Vehicle breakdown");
+            if (!reason) return;
+
+            try {
+                const res = await fetch(`/api/bookings/${currentBookingId}/worker-cancel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                const data = await res.json();
+                if (res.ok && data.status === 'success') {
+                    alert('Job cancelled with ZERO penalty. The platform is automatically re-assigning the request.');
+                    location.reload();
+                } else {
+                    alert(data.detail || 'Cancellation could not be completed.');
+                }
+            } catch(e) {
+                console.error("Worker cancel error", e);
+            }
+        }
+
+        async function toggleOnlineStatus() {
+            const isAvail = document.getElementById('availToggle').checked;
+            document.getElementById('availText').innerText = isAvail ? getI18n('worker_online', 'Online') : getI18n('worker_offline', 'Offline');
+            await fetch(`/api/workers/${currentWorkerId}/availability?is_available=${isAvail}`, { method: 'POST' });
+        }
+
+        async function updateJobState(nextStatus) {
+            if (!currentBookingId) return;
+            try {
+                const res = await fetch(`/api/bookings/${currentBookingId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: nextStatus })
+                });
+                const data = await res.json();
+                
+                if (res.ok && data.status === 'success') {
+                    if (nextStatus === 'en_route') {
+                        document.getElementById('btnEnRoute').classList.add('hidden');
+                        document.getElementById('btnProgress').classList.remove('hidden');
+                        showToastAlert('🛵 Trip started: Marked En Route!', 'success');
+                    } else if (nextStatus === 'in_progress') {
+                        showToastAlert('📍 Arrived at Customer Destination! Citizen has been notified.', 'success');
+                        document.getElementById('btnProgress').classList.add('hidden');
+                        document.getElementById('btnComplete').classList.remove('hidden');
+                    } else if (nextStatus === 'completed') {
+                        const payout = data.ledger_record ? Number(data.ledger_record.payout).toFixed(2) : '85%';
+                        alert(`Job Completed! Direct Payout of ₹${payout} (85% net) recorded in the official cooperative wage registry.`);
+                        location.reload();
+                    }
+                } else {
+                    alert(data.detail || 'Status update failed.');
+                }
+            } catch (err) {
+                console.error("Status update error", err);
+            }
+        }
+
+        function openWorkerMyProfileModal() { document.getElementById('workerMyProfileModal').classList.remove('hidden'); }
+        function closeWorkerMyProfileModal() { document.getElementById('workerMyProfileModal').classList.add('hidden'); }
+
+        // Skill Examination Handlers
+        function openExamModal(title) {
+            selectedExamTitle = title;
+            document.getElementById('examTitleHeading').innerText = title;
+            document.getElementById('skillExamModal').classList.remove('hidden');
+        }
+        function closeExamModal() { document.getElementById('skillExamModal').classList.add('hidden'); }
+
+        async function handleExamSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitExam');
+            btn.innerText = 'Evaluating Score...';
+            btn.disabled = true;
+
+            const q1 = document.querySelector('input[name="q1"]:checked')?.value;
+            const q2 = document.querySelector('input[name="q2"]:checked')?.value;
+            const q3 = document.querySelector('input[name="q3"]:checked')?.value;
+
+            let score = 0;
+            if (q1 === 'b') score += 34;
+            if (q2 === 'a') score += 33;
+            if (q3 === 'b') score += 33;
+
+            try {
+                const res = await fetch(`/api/workers/${currentWorkerId}/exam-submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ exam_title: selectedExamTitle, score })
+                });
+                const data = await res.json();
+                if (data.passed) {
+                    alert(`🎉 Passed with ${score}%!\nCertificate: ${data.certificate_id}\nYour profile has been upgraded to ${data.awarded_title} and dispatch ranking boosted!`);
+                    closeExamModal();
+                    fetchWorkerProfile();
+                } else {
+                    alert(`Exam score: ${score}%. Minimum passing score is 80%. Please review guidelines and re-attempt.`);
+                }
+            } catch(err) {
+                console.error("Exam err", err);
+            } finally {
+                btn.innerText = 'Submit Exam & Verify Score';
+                btn.disabled = false;
+            }
+        }
+
+        // Subscribe Worker Pro
+        async function subscribeWorkerPro() {
+            try {
+                const res = await fetch(`/api/workers/${currentWorkerId}/subscribe`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert('⭐ ' + data.message);
+                    fetchWorkerProfile();
+                }
+            } catch(e) {
+                console.error("Sub err", e);
+            }
+        }
+
+        function toggleWorkerAiDrawer() {
+            const drawer = document.getElementById('workerAiDrawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        function handleWorkerFileSelected(input) {
+            if (input.files && input.files[0]) {
+                const status = document.getElementById('workerVoiceStatus');
+                status.innerText = `📸 Attached media: ${input.files[0].name}`;
+                status.classList.remove('hidden');
+            }
+        }
+
+        function activateWorkerVoice() {
+            startVoiceRecognition('workerAiInput', (statusText) => {
+                const status = document.getElementById('workerVoiceStatus');
+                if (statusText) {
+                    status.innerText = `🎙️ ${statusText}`;
+                    status.classList.remove('hidden');
+                } else {
+                    status.classList.add('hidden');
+                }
+            });
+        }
+
+        function sendWorkerAiQuery(txt) {
+            document.getElementById('workerAiInput').value = txt;
+            handleWorkerAiSubmit(new Event('submit'));
+        }
+
+        async function handleWorkerAiSubmit(e) {
+            if (e) e.preventDefault();
+            const input = document.getElementById('workerAiInput');
+            const q = input.value.trim();
+            const fileInput = document.getElementById('workerAiFile');
+            const hasFile = fileInput.files && fileInput.files[0];
+
+            if (!q && !hasFile) return;
+
+            const chat = document.getElementById('workerAiChat');
+            
+            const userMsg = document.createElement('div');
+            userMsg.className = 'bg-slate-900 text-white p-2.5 rounded-xl ml-6 text-right shadow-sm';
+            userMsg.innerText = q + (hasFile ? `\n[📸 ${fileInput.files[0].name}]` : '');
+            chat.appendChild(userMsg);
+            input.value = '';
+            chat.scrollTop = chat.scrollHeight;
+
+            const formData = new FormData();
+            formData.append('query', q);
+            if (hasFile) formData.append('file', fileInput.files[0]);
+
+            try {
+                const res = await fetch('/api/ai/worker-help', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                const botMsg = document.createElement('div');
+                botMsg.className = 'bg-white p-3 rounded-xl shadow-sm border border-slate-200 text-slate-800 mr-4 whitespace-pre-line leading-relaxed';
+                botMsg.innerText = data.reply || 'Technical assistant returned no output.';
+                chat.appendChild(botMsg);
+                chat.scrollTop = chat.scrollHeight;
+                fileInput.value = '';
+                document.getElementById('workerVoiceStatus').classList.add('hidden');
+            } catch(err) {
+                console.error("AI error", err);
+            }
+        }
+
+        function viewArtisanGatepass() {
+            document.getElementById('artisanGatepassModal').classList.remove('hidden');
+        }
+        function closeArtisanGatepass() {
+            document.getElementById('artisanGatepassModal').classList.add('hidden');
+        }
+
+        async function requestGuildBuddy() {
+            if (!currentBookingId) return;
+            const btn = document.getElementById('btnGuildBuddy');
+            btn.innerText = 'Summoning Nearby Peer...';
+            btn.disabled = true;
+            try {
+                const res = await fetch(`/api/bookings/${currentBookingId}/guild-buddy`, { method: 'POST' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert(data.message + '\nAutomated 50/50 lead-assistant split activated.');
+                    btn.innerText = '✓ Guild Buddy Assigned';
+                    btn.className = 'bg-emerald-100 text-emerald-900 font-bold text-[11px] px-2.5 py-1 rounded-lg';
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+    
+        function openRegisterModal() {
+            document.getElementById('registerModal').classList.remove('hidden');
+            const alertBox = document.getElementById('regAlertBox');
+            if (alertBox) alertBox.classList.add('hidden');
+        }
+
+        function closeRegisterModal() {
+            document.getElementById('registerModal').classList.add('hidden');
+        }
+
+        async function handleRegisterWorkerSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitWorkerReg');
+            const alertBox = document.getElementById('regAlertBox');
+            btn.disabled = true;
+            btn.innerText = 'Submitting Registration...';
+
+            const formData = new FormData();
+            formData.append('full_name', document.getElementById('regWorkerName').value.trim());
+            formData.append('phone', document.getElementById('regWorkerPhone').value.trim());
+            formData.append('categories', document.getElementById('regWorkerTrade').value);
+            formData.append('society_name', document.getElementById('regWorkerSociety').value);
+            formData.append('specialization', document.getElementById('regWorkerSpec').value.trim() || 'General Trade Services');
+            formData.append('qualification', document.getElementById('regWorkerQual').value.trim() || 'ITI Skill India Certified');
+            formData.append('password', document.getElementById('regWorkerPassword').value.trim() || 'worker123');
+            formData.append('experience_years', 5);
+            formData.append('age', 32);
+
+            const fileInput = document.getElementById('regWorkerDoc');
+            if (fileInput.files && fileInput.files[0]) {
+                formData.append('doc_file', fileInput.files[0]);
+            }
+
+            try {
+                const res = await fetch('/api/workers/register', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.status === 'success') {
+                    alertBox.className = 'p-2.5 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300';
+                    alertBox.innerText = '✓ Registration submitted! Profile is sent to Federation Admin Verification Queue.';
+                    alertBox.classList.remove('hidden');
+                    setTimeout(() => {
+                        closeRegisterModal();
+                        document.getElementById('regWorkerForm').reset();
+                    }, 2000);
+                } else {
+                    alertBox.className = 'p-2.5 rounded-lg text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-300';
+                    alertBox.innerText = (data && data.detail) || 'Failed to submit registration. Please check details.';
+                    alertBox.classList.remove('hidden');
+                }
+            } catch(err) {
+                console.error('Reg err', err);
+                alertBox.className = 'p-2.5 rounded-lg text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-300';
+                alertBox.innerText = 'Connection error. Please ensure server is running.';
+                alertBox.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = getI18n('reg_btn_submit', 'Submit for Federation Verification');
+            }
+        }
+
+    </script>
+</body>
+</html>

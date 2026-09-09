@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SahakarConnect - Citizen Booking Portal (Ghaziabad)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Sans+Kannada:wght@400;500;600;700&display=swap');
+        body { 
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Tamil', sans-serif;
+            background-color: #F8FAFC;
+        }
+        .tricolor-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #FF9933 0%, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%, #138808 100%);
+        }
+        .pulse-beacon {
+            animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+</head>
+<body class="text-slate-900 antialiased min-h-screen relative">
+    
+    <!-- Tricolor Bar -->
+    <div class="tricolor-bar"></div>
+
+    <!-- Toast Notification Banner Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- Top Utility Bar with 10+ State Languages -->
+    <div class="bg-slate-900 text-slate-200 text-xs py-1.5 px-4 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <span class="font-bold text-amber-300 text-[11px] sm:text-xs" data-i18n="top_govt_title">
+                Government of Uttar Pradesh • Department of Cooperatives
+            </span>
+            <div class="flex items-center space-x-3">
+                <a href="#emergency" class="text-rose-400 font-bold hover:text-rose-300 text-xs">
+                    <span data-i18n="emergency_helpline">24x7 Helpline: 1800-GZB-HELP</span>
+                </a>
+                <div class="flex items-center space-x-1.5 bg-slate-800 rounded px-2 py-0.5 border border-slate-700">
+                    <i class="fa-solid fa-language text-amber-400 text-xs"></i>
+                    <select id="globalLangSelect" onchange="applyLanguage(this.value)" class="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer">
+                        <option value="en">English (EN)</option>
+                        <option value="hi">हिन्दी (Hindi)</option>
+                        <option value="bho">भोजपुरी (Bhojpuri)</option>
+                        <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                        <option value="bn">বাংলা (Bengali)</option>
+                        <option value="gu">ગુજરાતી (Gujarati)</option>
+                        <option value="mr">मराठी (Marathi)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Header -->
+    <header class="bg-white border-b border-slate-200 py-3 px-4 sm:px-6 shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <a href="/" class="flex items-center space-x-3">
+                <img src="/static/logo.svg" onerror="this.src='/static/logo.png'" alt="Sahakar Emblem" class="w-12 h-12 object-contain">
+                <div>
+                    <span class="text-xl font-black text-slate-900">Sahakar<span class="text-amber-600">Connect</span></span>
+                    <span class="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-300 ml-1.5" data-i18n="nav_customer">Citizen Portal</span>
+                    <p class="text-[11px] text-slate-500 font-medium" data-i18n="society_name">Ghaziabad District Cooperative Federation</p>
+                </div>
+            </a>
+
+            <!-- Action Tools & Navigation -->
+            <div class="flex items-center space-x-2 text-xs font-bold flex-wrap">
+                <button onclick="openDiagnosticModal()" class="px-2.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition flex items-center space-x-1 shadow-sm">
+                    <span data-i18n="btn_ai_pre_est">🔍 AI Pre-Estimator</span>
+                </button>
+                <button onclick="openMoversModal()" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition flex items-center space-x-1 shadow-sm">
+                    <span data-i18n="btn_movers_est">📦 Movers Estimator</span>
+                </button>
+                <button onclick="openPartsModal()" class="px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition flex items-center space-x-1 shadow-sm">
+                    <span data-i18n="btn_spare_parts">🔩 Spare Parts</span>
+                </button>
+                <button onclick="openSubscriptionModal()" class="px-2.5 py-1.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-400 hover:bg-amber-200 transition flex items-center space-x-1 shadow-sm">
+                    <span>👑 Sahakar Gold</span>
+                </button>
+
+                <div id="authGuestBlock" class="flex items-center space-x-1.5 pl-2 border-l border-slate-200">
+                    <a href="/customer/login" class="px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition shadow-sm flex items-center">
+                        <i class="fa-solid fa-right-to-bracket mr-1"></i> <span data-i18n="btn_sign_in">Sign In</span>
+                    </a>
+                    <a href="/customer/signup" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition shadow-sm flex items-center">
+                        <i class="fa-solid fa-user-plus mr-1"></i> <span data-i18n="btn_sign_up">Sign Up</span>
+                    </a>
+                </div>
+
+                <div id="authUserBlock" class="hidden flex items-center space-x-2 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                    <i class="fa-solid fa-user text-amber-600"></i>
+                    <span id="citizenNameDisplay" class="font-bold text-slate-800 text-xs">Aditya Pandey</span>
+                    <button onclick="handleCitizenLogout()" class="text-[10px] text-rose-600 hover:underline font-bold pl-1">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Trade Selection, Map, and Nearby Verified Workers -->
+        <div class="lg:col-span-7 space-y-5">
+            
+            <!-- 1. Category Selection -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <h2 class="text-xs font-bold uppercase text-slate-600" data-i18n="cust_select_trade">1. Select Service Trade</h2>
+                    <button id="sosToggleBtn" onclick="toggleEmergencyMode()" class="px-3 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-300 hover:bg-rose-100 transition flex items-center space-x-1">
+                        <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>
+                        <span id="sosLabel" data-i18n="cust_sos_mode_off">🚨 24x7 Emergency SOS Mode (Off)</span>
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap gap-2" id="categoryFilters">
+                    <button onclick="setCategory('Electrician')" class="cat-pill bg-slate-900 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition" data-i18n="srv_elec">⚡ Electrician</button>
+                    <button onclick="setCategory('Plumber')" class="cat-pill bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold px-3 py-1.5 rounded-lg text-xs transition" data-i18n="srv_plumb">🔧 Plumber</button>
+                    <button onclick="setCategory('Carpenter')" class="cat-pill bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold px-3 py-1.5 rounded-lg text-xs transition" data-i18n="srv_carp">🪚 Carpenter</button>
+                    <button onclick="setCategory('Appliance Repair')" class="cat-pill bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold px-3 py-1.5 rounded-lg text-xs transition" data-i18n="srv_ac">❄️ AC & Appliance</button>
+                    <button onclick="setCategory('Construction Mistri')" class="cat-pill bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold px-3 py-1.5 rounded-lg text-xs transition" data-i18n="srv_mistri">🧱 Raj Mistri / Mason</button>
+                    <button onclick="setCategory('General Labour')" class="cat-pill bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold px-3 py-1.5 rounded-lg text-xs transition" data-i18n="srv_labour">👷 Beldar Labour</button>
+                    <button onclick="setCategory('Packers Movers')" class="cat-pill bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold px-3 py-1.5 rounded-lg text-xs transition" data-i18n="srv_movers">📦 Packers & Movers</button>
+                    <button onclick="setCategory('Deep Cleaning')" class="cat-pill bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold px-3 py-1.5 rounded-lg text-xs transition" data-i18n="srv_clean">🧹 Deep Cleaning</button>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div class="flex items-center space-x-3 font-semibold text-slate-700">
+                        <label class="flex items-center space-x-1.5 cursor-pointer">
+                            <input type="radio" name="bookingMode" value="on_demand" checked onchange="toggleScheduleInput(false)" class="text-amber-600 focus:ring-amber-500">
+                            <span data-i18n="cust_instant_dispatch">⚡ Instant Dispatch</span>
+                        </label>
+                        <label class="flex items-center space-x-1.5 cursor-pointer">
+                            <input type="radio" name="bookingMode" value="scheduled" onchange="toggleScheduleInput(true)" class="text-amber-600 focus:ring-amber-500">
+                            <span data-i18n="cust_schedule_later">📅 Schedule for Later</span>
+                        </label>
+                        <div id="scheduleTimeWrapper" class="hidden">
+                            <input type="datetime-local" id="scheduledTimeInput" class="bg-slate-50 border border-slate-300 rounded px-2 py-0.5 text-xs text-slate-800">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-start sm:justify-end space-x-1.5">
+                        <span class="text-slate-500 font-bold">Tip Worker:</span>
+                        <button onclick="selectTip(0)" class="tip-btn bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold text-[11px] border border-slate-300">₹0</button>
+                        <button onclick="selectTip(20)" class="tip-btn bg-amber-50 text-amber-900 px-2 py-0.5 rounded font-bold text-[11px] border border-amber-300">+₹20</button>
+                        <button onclick="selectTip(50)" class="tip-btn bg-amber-50 text-amber-900 px-2 py-0.5 rounded font-bold text-[11px] border border-amber-300">+₹50</button>
+                        <button onclick="selectTip(100)" class="tip-btn bg-amber-50 text-amber-900 px-2 py-0.5 rounded font-bold text-[11px] border border-amber-300">+₹100</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. District Map with Live Zomato-style Tracking Marker -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-bold uppercase text-slate-600" data-i18n="cust_loc_title">2. Service Location & Live Tracking</h2>
+                    <span id="locDisplay" class="text-xs text-slate-800 font-bold bg-slate-100 border border-slate-300 px-2.5 py-1 rounded">
+                        Shipra Sun City, Indirapuram (28.6380, 77.3685)
+                    </span>
+                </div>
+                <div id="customerMap" class="h-64 w-full rounded-xl border border-slate-200 overflow-hidden relative z-0"></div>
+                <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+                    <span data-i18n="cust_loc_hint">💡 Click anywhere on the map to set Ghaziabad sector address.</span>
+                    <button onclick="useCurrentGps()" class="text-amber-700 font-bold hover:underline" data-i18n="cust_use_gps">📍 Use My GPS</button>
+                </div>
+            </div>
+
+            <!-- 3. Nearby Verified Artisans -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-bold uppercase text-slate-600" data-i18n="cust_nearby_title">3. Available Verified Cooperative Artisans</h2>
+                    <span id="workerCountBadge" class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                        Loading...
+                    </span>
+                </div>
+                <div id="workersList" class="space-y-2.5 max-h-96 overflow-y-auto pr-1"></div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Live Booking Status, Live Tracking & Invoicing -->
+        <div class="lg:col-span-5 space-y-5">
+
+            <!-- Active Booking Tracker -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900" data-i18n="cust_tracker_title">Service Status Tracker</h3>
+                        <p class="text-[11px] text-slate-500" data-i18n="cust_tracker_subtitle">Official dispatch status updates</p>
+                    </div>
+                    <span id="bookingIdDisplay" class="text-xs font-mono font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded">
+                        No Active Job
+                    </span>
+                </div>
+
+                <div id="noActiveBooking" class="text-center py-8 space-y-1 text-slate-400">
+                    <div class="text-3xl">🛠️</div>
+                    <p class="text-xs font-bold text-slate-700" data-i18n="cust_no_job_title">Select a trade and book an artisan</p>
+                    <p class="text-[11px] text-slate-400" data-i18n="cust_no_job_desc">Assigned cooperative artisan will appear here.</p>
+                </div>
+
+                <div id="activeBookingCard" class="hidden space-y-4">
+                    
+                    <div id="etaBanner" class="p-3 bg-amber-500 text-white rounded-xl flex items-center justify-between shadow-sm">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xl">🛵</span>
+                            <div>
+                                <p class="text-xs font-black uppercase tracking-wide" id="etaStatusTitle">Artisan En Route</p>
+                                <p class="text-[11px] font-semibold" id="etaTimerText">Estimated Arrival in 9 mins</p>
+                            </div>
+                        </div>
+                        <span class="w-3 h-3 rounded-full bg-white pulse-beacon"></span>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl flex items-center justify-between cursor-pointer hover:border-slate-400 transition" onclick="openWorkerDetailedProfile(activeWorkerId)">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-lg bg-slate-800 text-white font-bold flex items-center justify-center text-xs">
+                                <span id="trackWorkerInitials">RK</span>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-900 hover:text-amber-700 transition" id="trackWorkerName">Ramesh Kumar <span class="text-[10px] text-indigo-600 font-bold ml-1">View Profile ↗</span></h4>
+                                <p class="text-[11px] text-slate-600" id="trackWorkerSociety">Raj Nagar Artisans Sahakari</p>
+                                <p class="text-[11px] text-emerald-700 font-bold" id="trackWorkerRating">⭐ 4.92 (Skill India Certified)</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5" onclick="event.stopPropagation()">
+                            <button onclick="viewSocietyGatepass()" class="p-2 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 text-xs font-bold" title="Society Gatepass">
+                                🏢 Pass
+                            </button>
+                            <a id="trackCallBtn" href="tel:9811000001" class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center text-xs hover:bg-slate-700 transition">
+                                <i class="fa-solid fa-phone"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 5-Step Stepper -->
+                    <div class="space-y-3 relative pl-4 border-l-2 border-slate-200 ml-2 text-xs" id="timelineStepper">
+                        <div id="step-requested" class="flex items-center space-x-2 text-slate-400">
+                            <div class="w-2.5 h-2.5 rounded-full bg-slate-300 -ml-[21px]"></div>
+                            <span data-i18n="step_1_requested">1. Booking Requested</span>
+                        </div>
+                        <div id="step-assigned" class="flex items-center space-x-2 text-slate-400">
+                            <div class="w-2.5 h-2.5 rounded-full bg-slate-300 -ml-[21px]"></div>
+                            <span data-i18n="step_2_assigned">2. Artisan Assigned</span>
+                        </div>
+                        <div id="step-en_route" class="flex items-center space-x-2 text-slate-400">
+                            <div class="w-2.5 h-2.5 rounded-full bg-slate-300 -ml-[21px]"></div>
+                            <span data-i18n="step_3_enroute">3. Worker En Route (GPS Active)</span>
+                        </div>
+                        <div id="step-in_progress" class="flex items-center space-x-2 text-slate-400">
+                            <div class="w-2.5 h-2.5 rounded-full bg-slate-300 -ml-[21px]"></div>
+                            <span data-i18n="step_4_progress">4. Service In Progress</span>
+                        </div>
+                        <div id="step-completed" class="flex items-center space-x-2 text-slate-400">
+                            <div class="w-2.5 h-2.5 rounded-full bg-slate-300 -ml-[21px]"></div>
+                            <span data-i18n="step_5_completed">5. Work Completed & Settled</span>
+                        </div>
+                    </div>
+
+                    <div id="cancelPanel" class="pt-2 border-t border-slate-100 flex justify-between items-center">
+                        <button onclick="promptCancellation()" class="text-[11px] font-bold text-rose-600 hover:text-rose-800 hover:underline" data-i18n="btn_cancel_service">
+                            ✕ Cancel Booking
+                        </button>
+                        <span class="text-[10px] text-slate-400">Fine applies only if cancelled en route</span>
+                    </div>
+
+                    <div id="postCompletionActions" class="hidden pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
+                        <button onclick="viewInvoice()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 px-2 rounded-lg transition flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-receipt"></i><span data-i18n="btn_view_invoice">Digital Invoice</span>
+                        </button>
+                        <button onclick="openRatingModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-2 px-2 rounded-lg transition flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-star"></i><span data-i18n="btn_rate_service">Rate Service</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cooperative Guarantee & Wage Breakdown Card -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-800 uppercase" data-i18n="coop_wage_title">Cooperative Wage Structure</span>
+                    <span class="text-[10px] bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded" data-i18n="nav_wage_share">85% Worker Share</span>
+                </div>
+                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center space-x-2.5">
+                    <span class="text-xl">🛡️</span>
+                    <div>
+                        <p class="text-xs font-bold text-emerald-900" data-i18n="warranty_badge">30-Day Cooperative Escrow Warranty</p>
+                        <p class="text-[10px] text-emerald-700">Backed by 3% Welfare Pool. Free zero-cost callback guarantee.</p>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 grid grid-cols-3 gap-2 text-center text-xs font-medium">
+                    <div><span class="text-[10px] text-slate-500" data-i18n="coop_payout_col">Worker Payout</span><p class="font-bold text-slate-900">85%</p></div>
+                    <div><span class="text-[10px] text-slate-500" data-i18n="coop_ops_col">Platform Ops</span><p class="font-bold text-slate-900">12%</p></div>
+                    <div><span class="text-[10px] text-slate-500" data-i18n="coop_welfare_col">Welfare & Ins.</span><p class="font-bold text-slate-900">3%</p></div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- SAHAKAR GOLD CITIZEN SUBSCRIPTION MODAL (Item 17) -->
+    <div id="subscriptionModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-sm w-full rounded-2xl p-5 shadow-2xl space-y-3.5 text-xs">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">👑</span>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm">Sahakar Gold Citizen Pass</h3>
+                        <p class="text-[10px] text-slate-500">Government cooperative privilege membership</p>
+                    </div>
+                </div>
+                <button onclick="closeSubscriptionModal()" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                <p class="font-bold text-amber-950 text-xs">⭐ Member Benefits:</p>
+                <ul class="space-y-1 text-[11px] text-amber-900">
+                    <li>• <strong>Zero ₹150 Emergency Surcharge</strong> on 24x7 SOS bookings</li>
+                    <li>• <strong>10% Extra Discount</strong> on Sahakar Mandi wholesale spare parts</li>
+                    <li>• <strong>Priority 10-Minute Dispatch SLA</strong> across Ghaziabad</li>
+                    <li>• <strong>Free Extended 60-Day Escrow Warranty</strong> on all repairs</li>
+                </ul>
+            </div>
+
+            <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <div>
+                    <span class="text-[10px] text-slate-500 block">Monthly Citizen Pass</span>
+                    <span class="text-base font-black text-slate-900">₹99 / month</span>
+                </div>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Save ~₹450/mo</span>
+            </div>
+
+            <button onclick="activateCitizenGold()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-lg transition shadow">
+                Activate Sahakar Gold (₹99/mo)
+            </button>
+        </div>
+    </div>
+
+    <!-- 1. WORKER DETAILED PROFILE MODAL -->
+    <div id="workerProfileModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-md w-full rounded-2xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-start pb-2 border-b border-slate-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-xl bg-slate-800 text-amber-400 font-bold flex items-center justify-center text-lg" id="profAvatar">
+                        RK
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h3 class="text-sm font-bold text-slate-900" id="profName">Ramesh Kumar</h3>
+                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Verified ✅</span>
+                        </div>
+                        <p class="text-xs text-slate-600" id="profAgeExp">Age: 34 yrs • Experience: 8 yrs</p>
+                        <p class="text-[10px] text-slate-500" id="profSociety">Raj Nagar Artisans Sahakari Samiti</p>
+                    </div>
+                </div>
+                <button onclick="closeWorkerDetailedProfile()" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">Trade Qualification</span>
+                    <p class="font-bold text-slate-800 text-[11px]" id="profQual">ITI Electrician (NCVT)</p>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">Welfare & Insurance ID</span>
+                    <p class="font-mono font-bold text-slate-900 text-[11px]" id="profWelfareId">COOP-WLF-GZB-01</p>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <h4 class="text-xs font-bold text-slate-800 uppercase">Recent Citizen Reviews</h4>
+                    <span class="text-xs font-bold text-amber-600" id="profRatingScore">⭐ 4.92 (18 reviews)</span>
+                </div>
+                <div id="profReviewsList" class="space-y-2 text-xs max-h-48 overflow-y-auto pr-1"></div>
+            </div>
+
+            <button onclick="closeWorkerDetailedProfile()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-lg transition">
+                Close Profile
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. CANCELLATION FINE WARNING MODAL -->
+    <div id="cancelFineModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-sm w-full rounded-2xl p-5 shadow-2xl space-y-3 text-xs">
+            <div class="flex items-center space-x-2 text-rose-600">
+                <span class="text-xl">⚠️</span>
+                <h3 class="text-sm font-bold text-slate-900">Cancellation Fine Notice</h3>
+            </div>
+            <p class="text-slate-600 leading-relaxed" id="cancelModalText">
+                Your assigned artisan is already en route. Cancelling at this stage incurs a <strong>travel fine of ₹100.00</strong>, which will be credited directly to the worker to compensate for his transit and time.
+            </p>
+            <div class="pt-2 border-t border-slate-200 flex space-x-2">
+                <button onclick="closeCancelModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-lg transition">
+                    Keep Service
+                </button>
+                <button onclick="confirmCancellation()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 rounded-lg transition">
+                    Confirm Cancel (Pay Fine)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. AI MOVERS & LUGGAGE ESTIMATOR MODAL WITH PHOTO UPLOADING -->
+    <div id="moversModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-lg w-full rounded-2xl p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">📦</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">AI Packers & Movers Estimator</h3>
+                        <p class="text-[10px] text-slate-500">Calculates luggage volume, recommended truck & movers count</p>
+                    </div>
+                </div>
+                <button onclick="closeMoversModal()" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+
+            <form onsubmit="handleMoversEstimate(event)" class="space-y-3 text-xs text-slate-700">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">House Size</label>
+                        <select id="movHomeType" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-xs">
+                            <option value="1RK">1 RK / Studio</option>
+                            <option value="1BHK">1 BHK Apartment</option>
+                            <option value="2BHK" selected>2 BHK Apartment</option>
+                            <option value="3BHK">3 BHK Apartment</option>
+                            <option value="4BHK / VILLA">4 BHK / Villa</option>
+                            <option value="OFFICE">Commercial Office</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Shifting Distance (km)</label>
+                        <input type="number" id="movDist" value="12" min="1" max="150" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-xs">
+                    </div>
+                </div>
+
+                <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-1.5">
+                    <label class="block font-bold text-emerald-950">
+                        📸 Upload Room / Luggage Photos (For Exact Volume AI Calculation)
+                    </label>
+                    <input type="file" id="movPhoto" accept="image/*" class="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-bold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800 cursor-pointer">
+                    <p class="text-[10px] text-emerald-800">Attach photos of heavy appliances (fridge, bed, sofa, almirah) for millimeter-accurate truck sizing.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-slate-50 p-2 rounded border border-slate-200">
+                        <label class="font-bold text-slate-700 block mb-0.5">Pickup Floor & Lift</label>
+                        <input type="number" id="movFloorFrom" value="2" class="w-12 bg-white border p-1 rounded text-xs mr-2">
+                        <label><input type="checkbox" id="movLiftFrom" checked> Lift available</label>
+                    </div>
+                    <div class="bg-slate-50 p-2 rounded border border-slate-200">
+                        <label class="font-bold text-slate-700 block mb-0.5">Drop Floor & Lift</label>
+                        <input type="number" id="movFloorTo" value="1" class="w-12 bg-white border p-1 rounded text-xs mr-2">
+                        <label><input type="checkbox" id="movLiftTo" checked> Lift available</label>
+                    </div>
+                </div>
+
+                <button type="submit" id="movBtn" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs py-2.5 rounded-lg transition shadow-sm">
+                    Run AI Luggage & Movers Estimation
+                </button>
+            </form>
+
+            <div id="moversResult" class="hidden pt-3 border-t border-slate-200 space-y-2 text-xs">
+                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl space-y-1 text-emerald-950">
+                    <p><strong>Recommended Transport:</strong> <span id="resTruck" class="font-bold">14-ft Closed Container</span></p>
+                    <p><strong>Optimal Helpers:</strong> <span id="resMovers" class="font-bold">4 Certified Movers</span> (Luggage: ~650 CFT)</p>
+                    <p id="resPhotoNote" class="text-[10px] text-emerald-800 font-semibold"></p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 font-mono text-[11px] space-y-1">
+                    <div class="flex justify-between"><span>Movers Labor:</span><span id="resLabor">₹2,600</span></div>
+                    <div class="flex justify-between"><span>Truck & Fuel Transit:</span><span id="resTransport">₹2,445</span></div>
+                    <div class="flex justify-between"><span>5-Ply Packaging Kit:</span><span id="resPacking">₹850</span></div>
+                    <div class="flex justify-between font-bold text-slate-900 border-t pt-1"><span>Total Estimated Fare:</span><span id="resTotal">₹5,895</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. AI VISUAL DIAGNOSTIC MODAL WITH VOICE INPUT -->
+    <div id="diagnosticModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-lg w-full rounded-2xl p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">🔍</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">AI Visual Problem Pre-Estimator</h3>
+                        <p class="text-[10px] text-slate-500">Know root cause, spare parts & exact price before booking</p>
+                    </div>
+                </div>
+                <button onclick="closeDiagnosticModal()" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+
+            <form onsubmit="handleDiagnosticSubmit(event)" class="space-y-3 text-xs text-slate-700">
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="font-bold text-slate-700">Describe the problem symptom</label>
+                        <button type="button" onclick="activateDiagnosticVoice()" class="text-[10px] font-bold text-indigo-700 hover:underline flex items-center">
+                            <i class="fa-solid fa-microphone mr-1 text-rose-600"></i> Speak in Your Language
+                        </button>
+                    </div>
+                    <textarea id="diagDesc" rows="2" placeholder="e.g. MCB switch sparking with burning smell, or water valve leaking under bathroom sink..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+                    <div id="diagVoiceStatus" class="text-[10px] text-emerald-800 font-bold hidden pt-0.5"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Trade Category</label>
+                        <select id="diagCat" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs">
+                            <option value="Electrician">Electrician</option>
+                            <option value="Plumber">Plumber</option>
+                            <option value="Carpenter">Carpenter</option>
+                            <option value="Appliance Repair">Appliance & AC</option>
+                            <option value="Construction Mistri">Construction Mistri</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Attach Photo (Optional)</label>
+                        <input type="file" id="diagImg" accept="image/*" class="w-full text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-slate-800 file:text-white">
+                    </div>
+                </div>
+
+                <button type="submit" id="diagBtn" class="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs py-2.5 rounded-lg transition shadow-sm">
+                    Run AI Diagnostic & Generate Cost Pre-Estimate
+                </button>
+            </form>
+
+            <div id="diagResultContainer" class="hidden pt-3 border-t border-slate-200 space-y-2 text-xs">
+                <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-xl space-y-1 text-indigo-950">
+                    <p><strong>Identified Issue:</strong> <span id="diagIssue" class="font-bold">--</span></p>
+                    <p><strong>Severity & Alert:</strong> <span id="diagSeverity" class="font-bold text-rose-700">--</span></p>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1 font-mono text-[11px]">
+                    <div class="flex justify-between"><span>Standard Labor Fee:</span><span id="diagLabor">₹0</span></div>
+                    <div class="flex justify-between"><span>Wholesale Parts Estimate:</span><span id="diagParts">₹0</span></div>
+                    <div class="flex justify-between font-bold text-slate-900 border-t pt-1"><span>Total Estimated Bill:</span><span id="diagTotal">₹0</span></div>
+                </div>
+                <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-200 text-[11px] text-amber-900">
+                    <p class="font-bold mb-0.5">⚠️ Pre-Arrival Safety Precaution:</p>
+                    <p id="diagSafety" class="whitespace-pre-line">--</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. SAHAKAR MANDI WHOLESALE SPARE PARTS INDEX MODAL -->
+    <div id="partsModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-xl w-full rounded-2xl p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">🔩</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Sahakar Mandi — Spare Parts Wholesale Index</h3>
+                        <p class="text-[10px] text-slate-500">Government cooperative rate card • Zero retailer markup</p>
+                    </div>
+                </div>
+                <button onclick="closePartsModal()" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs font-mono">
+                    <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="p-2">Genuine Part & Spec</th>
+                            <th class="p-2 text-right">Market MRP</th>
+                            <th class="p-2 text-right text-emerald-700">Cooperative Price</th>
+                            <th class="p-2 text-center">Warranty</th>
+                        </tr>
+                    </thead>
+                    <tbody id="partsTableBody" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. SOCIETY GATEPASS MODAL -->
+    <div id="gatepassModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-sm w-full rounded-2xl p-5 shadow-2xl space-y-3">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                <h3 class="text-sm font-bold text-slate-900">🏢 Society Entry Gatepass</h3>
+                <button onclick="closeGatepassModal()" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+            <div id="gatepassContent" class="space-y-2 text-xs text-slate-700"></div>
+        </div>
+    </div>
+
+    <!-- 7. INVOICE MODAL -->
+    <div id="invoiceModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-md w-full rounded-2xl p-5 shadow-xl space-y-3">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Official Service Invoice</h3>
+                    <p class="text-xs text-slate-500" id="invNumber">SC-GZB-22222222</p>
+                </div>
+                <button onclick="closeInvoiceModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+            <div class="space-y-2 text-xs text-slate-700" id="invContent"></div>
+            <div class="pt-2 border-t border-slate-200 flex justify-end">
+                <button onclick="window.print()" class="bg-slate-900 text-white font-bold text-xs px-3.5 py-1.5 rounded">Print / PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. MANDATORY POST-SERVICE REVIEW & RATING POPUP -->
+    <div id="ratingModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-sm w-full rounded-2xl p-5 shadow-2xl space-y-3">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                <h3 class="text-sm font-bold text-slate-900">⭐ Rate Your Service Experience</h3>
+                <button onclick="closeRatingModal()" class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button>
+            </div>
+            <div class="space-y-2 text-center">
+                <p class="text-xs text-slate-600">Your review helps maintain transparency and artisan wage bonuses.</p>
+                <div class="flex justify-center space-x-2 text-2xl text-amber-500" id="starContainer">
+                    <button onclick="setRating(1)" class="star-btn">★</button>
+                    <button onclick="setRating(2)" class="star-btn">★</button>
+                    <button onclick="setRating(3)" class="star-btn">★</button>
+                    <button onclick="setRating(4)" class="star-btn">★</button>
+                    <button onclick="setRating(5)" class="star-btn text-amber-600 font-bold">★</button>
+                </div>
+                <p class="text-xs text-slate-500 font-bold" id="ratingText">5 Stars - Excellent Workmanship</p>
+                <textarea id="feedbackText" rows="3" placeholder="Write comment (punctuality, clean work, behavior)..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+            </div>
+            <button onclick="submitRating()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-2.5 rounded-lg transition shadow">
+                Submit Citizen Review
+            </button>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script src="/static/js/translations.js"></script>
+    <script>
+
+        function escapeHtml(str) {
+            if (!str && str !== 0) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function handleAcknowledgeWorkerCancel() {
+            document.getElementById('workerCancelledModal').classList.add('hidden');
+            document.getElementById('activeBookingCard').classList.add('hidden');
+            document.getElementById('noActiveBooking').classList.remove('hidden');
+            document.getElementById('bookingIdDisplay').innerText = 'No Active Job';
+            activeBookingId = null;
+            localStorage.removeItem('sahakar_active_booking');
+            if (typeof trackTimer !== 'undefined' && trackTimer) clearInterval(trackTimer);
+            if (typeof pollTimer !== 'undefined' && pollTimer) clearInterval(pollTimer);
+            fetchNearbyWorkers();
+        }
+
+        let selectedCategory = "Electrician";
+        let isEmergencyMode = false;
+        let currentLat = 28.6380;
+        let currentLng = 77.3685;
+        let activeBookingId = null;
+        let activeWorkerId = "11111111-1111-1111-1111-111111111111";
+        let selectedTipAmount = 0;
+        let currentSelectedRating = 5;
+        let map, mapMarker, liveWorkerMarker;
+        let etaRemainingMins = 9;
+        let hasShownArrivalPopup = false;
+        let hasShownCompletionReview = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('cat')) selectedCategory = params.get('cat');
+            if (params.get('emergency') === 'true') {
+                isEmergencyMode = true;
+                updateEmergencyBadge();
+            }
+            initMap();
+            highlightSelectedCategory();
+            checkCitizenAuth();
+            fetchNearbyWorkers();
+            checkSavedActiveBooking();
+        });
+
+        async function checkSavedActiveBooking() {
+            const savedBookingId = localStorage.getItem('sahakar_active_booking');
+            if (!savedBookingId) return;
+
+            try {
+                const res = await fetch(`/api/bookings/${savedBookingId}`);
+                const data = await res.json();
+                if (data.status === 'success' && data.booking) {
+                    if (data.booking.status === 'cancelled') {
+                        const reason = data.booking.cancellation_reason || 'Artisan reported bike breakdown / emergency';
+                        const cancelledBy = data.booking.cancelled_by || 'worker';
+                        
+                        if (cancelledBy === 'worker') {
+                            document.getElementById('workerCancelReasonText').innerText = reason;
+                            document.getElementById('workerCancelledModal').classList.remove('hidden');
+                            showToastAlert(`⚠️ Artisan cancelled request: ${reason}. Zero fine applied!`, 'danger');
+                        }
+                        localStorage.removeItem('sahakar_active_booking');
+                    } else if (['requested', 'assigned', 'en_route', 'in_progress'].includes(data.booking.status)) {
+                        activeBookingId = savedBookingId;
+                        document.getElementById('noActiveBooking').classList.add('hidden');
+                        document.getElementById('activeBookingCard').classList.remove('hidden');
+                        document.getElementById('bookingIdDisplay').innerText = `ID: ${activeBookingId.slice(0, 8)}`;
+                        const wName = data.booking.worker_name || 'Cooperative Artisan';
+                        document.getElementById('trackWorkerName').innerText = wName;
+                        document.getElementById('trackWorkerSociety').innerText = data.booking.worker_society || 'Ghaziabad Guild';
+                        document.getElementById('trackWorkerInitials').innerText = wName.split(' ').filter(Boolean).map(n=>n[0]).join('') || 'CA';
+                        updateTimelineState(data.booking.status);
+                        pollBookingStatus();
+                    }
+                }
+            } catch(e) {
+                console.error("Saved booking check error", e);
+            }
+        }
+
+
+        function showToastAlert(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-800' : (type === 'danger' ? 'bg-rose-800' : 'bg-slate-900');
+            toast.className = `${bgClass} text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 pointer-events-auto transform transition duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `<span>🔔</span><span class="flex-1">${message}</span><button onclick="this.parentElement.remove()" class="text-slate-300 font-bold ml-2">✕</button>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        function checkCitizenAuth() {
+            const citizenData = localStorage.getItem('sahakar_citizen');
+            if (citizenData) {
+                try {
+                    const user = JSON.parse(citizenData);
+                    document.getElementById('authGuestBlock').classList.add('hidden');
+                    document.getElementById('authUserBlock').classList.remove('hidden');
+                    document.getElementById('citizenNameDisplay').innerText = user.full_name || 'Citizen';
+                    if (user.address) {
+                        document.getElementById('locDisplay').innerText = user.address;
+                    }
+                } catch(e) {}
+            }
+        }
+
+        function handleCitizenLogout() {
+            localStorage.removeItem('sahakar_citizen');
+            window.location.reload();
+        }
+
+        function initMap() {
+            map = L.map('customerMap').setView([currentLat, currentLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
+
+            mapMarker = L.marker([currentLat, currentLng], { draggable: true }).addTo(map);
+            mapMarker.bindPopup("<b>Service Location</b><br>Move pin to adjust.").openPopup();
+
+            map.on('click', (e) => {
+                currentLat = e.latlng.lat;
+                currentLng = e.latlng.lng;
+                mapMarker.setLatLng(e.latlng);
+                document.getElementById('locDisplay').innerText = `Ghaziabad Sector (${currentLat.toFixed(4)}, ${currentLng.toFixed(4)})`;
+                fetchNearbyWorkers();
+            });
+
+            mapMarker.on('dragend', (e) => {
+                const pos = e.target.getLatLng();
+                currentLat = pos.lat;
+                currentLng = pos.lng;
+                document.getElementById('locDisplay').innerText = `Ghaziabad Sector (${currentLat.toFixed(4)}, ${currentLng.toFixed(4)})`;
+                fetchNearbyWorkers();
+            });
+        }
+
+        function setCategory(cat) {
+            selectedCategory = cat;
+            highlightSelectedCategory();
+            fetchNearbyWorkers();
+        }
+
+        function highlightSelectedCategory() {
+            document.querySelectorAll('.cat-pill').forEach(btn => {
+                if (btn.innerText.includes(selectedCategory) || btn.getAttribute('data-i18n')?.includes(selectedCategory)) {
+                    btn.className = 'cat-pill bg-slate-900 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm';
+                } else {
+                    btn.className = 'cat-pill bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold px-3 py-1.5 rounded-lg text-xs transition';
+                }
+            });
+        }
+
+        function toggleEmergencyMode() {
+            isEmergencyMode = !isEmergencyMode;
+            updateEmergencyBadge();
+            fetchNearbyWorkers();
+        }
+
+        function updateEmergencyBadge() {
+            const btn = document.getElementById('sosToggleBtn');
+            const lbl = document.getElementById('sosLabel');
+            if (isEmergencyMode) {
+                btn.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-rose-600 text-white border border-rose-700 shadow transition flex items-center space-x-1';
+                lbl.innerText = getI18n('cust_sos_mode_on', '🚨 24x7 Emergency SOS Mode (Active +₹150)');
+            } else {
+                btn.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-300 hover:bg-rose-100 transition flex items-center space-x-1';
+                lbl.innerText = getI18n('cust_sos_mode_off', '🚨 24x7 Emergency SOS Mode (Off)');
+            }
+        }
+
+        function toggleScheduleInput(show) {
+            const wrapper = document.getElementById('scheduleTimeWrapper');
+            if (show) wrapper.classList.remove('hidden');
+            else wrapper.classList.add('hidden');
+        }
+
+        function selectTip(amt) {
+            selectedTipAmount = amt;
+            document.querySelectorAll('.tip-btn').forEach(btn => {
+                if (btn.innerText.includes(`₹${amt}`)) {
+                    btn.className = 'tip-btn bg-amber-600 text-white px-2 py-0.5 rounded font-bold text-[11px] shadow-sm';
+                } else {
+                    btn.className = 'tip-btn bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold text-[11px] border border-slate-300';
+                }
+            });
+            if (amt > 0) showToastAlert(`₹${amt} tip will be credited 100% to artisan on completion!`, 'success');
+        }
+
+        function useCurrentGps() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    currentLat = pos.coords.latitude;
+                    currentLng = pos.coords.longitude;
+                    map.setView([currentLat, currentLng], 14);
+                    mapMarker.setLatLng([currentLat, currentLng]);
+                    document.getElementById('locDisplay').innerText = `GPS Location (${currentLat.toFixed(4)}, ${currentLng.toFixed(4)})`;
+                    fetchNearbyWorkers();
+                });
+            }
+        }
+
+        async function fetchNearbyWorkers() {
+            try {
+                const res = await fetch(`/api/workers/nearby?lat=${currentLat}&lng=${currentLng}&category=${encodeURIComponent(selectedCategory)}&radius_km=30`);
+                const data = await res.json();
+                const list = document.getElementById('workersList');
+                list.innerHTML = '';
+                document.getElementById('workerCountBadge').innerText = `${data.count || 0} Available`;
+
+                if (!data.workers || data.workers.length === 0) {
+                    list.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No active ${selectedCategory} workers found in this sector. Move location pin.</p>`;
+                    return;
+                }
+
+                data.workers.forEach(w => {
+                    let baseFare = 350;
+                    if (selectedCategory === 'Plumber') baseFare = 400;
+                    else if (selectedCategory === 'Carpenter') baseFare = 450;
+                    else if (selectedCategory === 'Appliance Repair') baseFare = 499;
+                    else if (selectedCategory === 'Construction Mistri') baseFare = 750;
+                    else if (selectedCategory === 'General Labour') baseFare = 500;
+                    else if (selectedCategory === 'Packers Movers') baseFare = 2600;
+
+                    const urgentFee = isEmergencyMode ? 150 : 0;
+                    
+                    let distSurcharge = 0;
+                    if (w.distance_km > 10.0) {
+                        distSurcharge = Math.round((w.distance_km - 10.0) * 15.0);
+                    }
+
+                    const totalFare = baseFare + urgentFee + distSurcharge + selectedTipAmount;
+
+                    const item = document.createElement('div');
+                    item.className = 'bg-slate-50 p-3.5 rounded-xl border border-slate-200 hover:border-slate-400 shadow-sm transition flex items-center justify-between cursor-pointer';
+                    item.onclick = () => openWorkerDetailedProfile(w.worker_id);
+
+                    item.innerHTML = `
+                        <div class="space-y-0.5">
+                            <div class="flex items-center space-x-2">
+                                <h4 class="text-xs sm:text-sm font-bold text-slate-900">${w.name}</h4>
+                                <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded">⭐ ${w.rating}</span>
+                                ${w.is_pro_subscriber ? `<span class="text-[9px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.2 rounded">PRO GUILD ★</span>` : ''}
+                                <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded font-mono">${w.welfare_id}</span>
+                            </div>
+                            <p class="text-xs text-slate-600">${w.specialization} • <span class="text-slate-900 font-bold">${w.distance_km} km away</span></p>
+                            <p class="text-[10px] text-slate-500">${w.society_name} • Age: ${w.age || 34} yrs • ${w.qualification}</p>
+                            ${w.distance_km > 10 ? `<span class="inline-block text-[9px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded mt-0.5">+₹${distSurcharge} Long-Distance Travel Allowance (&gt;10km)</span>` : ''}
+                        </div>
+                        <button onclick="event.stopPropagation(); dispatchBooking('${w.worker_id}', '${w.name}', '${w.society_name}', ${totalFare}, ${w.distance_km})" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition shadow-sm">
+                            Book (₹${totalFare})
+                        </button>
+                    `;
+                    list.appendChild(item);
+                });
+            } catch (err) {
+                console.error("Worker fetch failed", err);
+            }
+        }
+
+        async function dispatchBooking(workerId, workerName, society, fare, distanceKm = 2.5) {
+            activeWorkerId = workerId;
+            const isScheduled = document.querySelector('input[name="bookingMode"]:checked').value === 'scheduled';
+            const scheduledTime = isScheduled ? document.getElementById('scheduledTimeInput').value : null;
+
+            let customerId = null;
+            const citizenData = localStorage.getItem('sahakar_citizen');
+            if (citizenData) {
+                try { customerId = JSON.parse(citizenData).id; } catch(e) {}
+            }
+
+            const res = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    customer_id: customerId,
+                    worker_id: workerId,
+                    category: selectedCategory,
+                    fare_amount: fare,
+                    distance_km: distanceKm,
+                    tip_amount: selectedTipAmount,
+                    is_urgent: isEmergencyMode,
+                    booking_type: isEmergencyMode ? 'emergency_sos' : (isScheduled ? 'scheduled' : 'on_demand'),
+                    scheduled_time: scheduledTime,
+                    service_lat: currentLat,
+                    service_lng: currentLng,
+                    address_text: document.getElementById('locDisplay').innerText || "Ghaziabad Sector Hub"
+                })
+            });
+
+            const data = await res.json();
+            if (data.status === 'success') {
+                activeBookingId = data.booking_id;
+                localStorage.setItem('sahakar_active_booking', activeBookingId);
+                document.getElementById('noActiveBooking').classList.add('hidden');
+                document.getElementById('activeBookingCard').classList.remove('hidden');
+                document.getElementById('bookingIdDisplay').innerText = `ID: ${activeBookingId.slice(0, 8)}`;
+                document.getElementById('trackWorkerName').innerText = workerName;
+                document.getElementById('trackWorkerSociety').innerText = society;
+                document.getElementById('trackWorkerInitials').innerText = workerName.split(' ').map(n=>n[0]).join('');
+
+                showToastAlert(`Artisan ${workerName} has accepted your service booking!`, 'success');
+
+                updateTimelineState(data.booking_status);
+                startLiveTrackingSimulation();
+                pollBookingStatus();
+            }
+        }
+
+        function startLiveTrackingSimulation() {
+            etaRemainingMins = 9;
+            hasShownArrivalPopup = false;
+            
+            let workerLat = currentLat + 0.008;
+            let workerLng = currentLng + 0.008;
+
+            const workerIcon = L.divIcon({
+                className: 'worker-live-icon',
+                html: '<div style="background:#0F2942; color:#F59E0B; border:2px solid white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:13px; box-shadow:0 3px 6px rgba(0,0,0,0.4);">🛵</div>',
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+
+            if (liveWorkerMarker) map.removeLayer(liveWorkerMarker);
+            liveWorkerMarker = L.marker([workerLat, workerLng], { icon: workerIcon }).addTo(map);
+            liveWorkerMarker.bindPopup("<b>Artisan Ramesh Kumar</b><br>En route to your doorstep").openPopup();
+
+            const trackTimer = setInterval(() => {
+                if (!activeBookingId) { clearInterval(trackTimer); return; }
+                
+                etaRemainingMins -= 1;
+                if (etaRemainingMins > 0) {
+                    document.getElementById('etaTimerText').innerText = `Estimated Arrival in ${etaRemainingMins} mins`;
+                    workerLat += (currentLat - workerLat) * 0.2;
+                    workerLng += (currentLng - workerLng) * 0.2;
+                    liveWorkerMarker.setLatLng([workerLat, workerLng]);
+                } else {
+                    document.getElementById('etaTimerText').innerText = 'Artisan has arrived at your gate!';
+                    document.getElementById('etaStatusTitle').innerText = 'Arrived On-Site';
+                    liveWorkerMarker.setLatLng([currentLat, currentLng]);
+                    
+                    if (!hasShownArrivalPopup) {
+                        hasShownArrivalPopup = true;
+                        showToastAlert('📍 Artisan has reached your destination! Please permit entry at society gate.', 'success');
+                    }
+                    clearInterval(trackTimer);
+                }
+            }, 3000);
+        }
+
+        function updateTimelineState(status) {
+            const steps = ['requested', 'assigned', 'en_route', 'in_progress', 'completed'];
+            const activeIndex = steps.indexOf(status);
+            steps.forEach((step, idx) => {
+                const el = document.getElementById(`step-${step}`);
+                if (!el) return;
+                const dot = el.querySelector('div');
+                if (idx <= activeIndex) {
+                    el.className = 'flex items-center space-x-2 text-slate-900 font-bold';
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-600 ring-2 ring-emerald-200 -ml-[21px]';
+                } else {
+                    el.className = 'flex items-center space-x-2 text-slate-400';
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-300 -ml-[21px]';
+                }
+            });
+
+            if (status === 'completed') {
+                document.getElementById('postCompletionActions').classList.remove('hidden');
+                document.getElementById('cancelPanel').classList.add('hidden');
+                document.getElementById('etaBanner').classList.add('hidden');
+                
+                if (!hasShownCompletionReview) {
+                    hasShownCompletionReview = true;
+                    setTimeout(() => { openRatingModal(); }, 1200);
+                }
+            }
+        }
+
+        let pollTimer = null;
+        function pollBookingStatus() {
+            if (!activeBookingId) return;
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/bookings/${activeBookingId}`);
+                    const data = await res.json();
+                    if (data.status === 'success' && data.booking) {
+                        if (data.booking.status === 'cancelled') {
+                            clearInterval(pollTimer);
+                            if (typeof trackTimer !== 'undefined' && trackTimer) clearInterval(trackTimer);
+                            
+                            const reason = data.booking.cancellation_reason || 'Artisan reported bike breakdown / emergency';
+                            const cancelledBy = data.booking.cancelled_by || 'worker';
+                            
+                            if (cancelledBy === 'worker') {
+                                document.getElementById('workerCancelReasonText').innerText = reason;
+                                document.getElementById('workerCancelledModal').classList.remove('hidden');
+                                showToastAlert(`⚠️ Artisan cancelled request: ${reason}. Zero fine applied!`, 'danger');
+                            } else {
+                                showToastAlert('Booking was cancelled.', 'info');
+                                handleAcknowledgeWorkerCancel();
+                            }
+                            return;
+                        }
+                        
+                        updateTimelineState(data.booking.status);
+                        if (data.booking.status === 'completed') clearInterval(pollTimer);
+                    }
+                } catch(e) {
+                    console.error("Poll err", e);
+                }
+            }, 3000);
+        }
+
+        function promptCancellation() { document.getElementById('cancelFineModal').classList.remove('hidden'); }
+        function closeCancelModal() { document.getElementById('cancelFineModal').classList.add('hidden'); }
+
+        async function confirmCancellation() {
+            closeCancelModal();
+            try {
+                const res = await fetch(`/api/bookings/${activeBookingId}/cancel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason: 'Citizen cancelled from portal' })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToastAlert(data.explanation, 'danger');
+                    alert(data.explanation);
+                    location.reload();
+                }
+            } catch(e) { console.error("Cancel error", e); }
+        }
+
+        function openSubscriptionModal() { document.getElementById('subscriptionModal').classList.remove('hidden'); }
+        function closeSubscriptionModal() { document.getElementById('subscriptionModal').classList.add('hidden'); }
+
+        function activateCitizenGold() {
+            alert('👑 Congratulations! Sahakar Gold Citizen Pass activated.\nZero ₹150 SOS surcharge & 10% discount on wholesale parts is now applied to your bookings.');
+            closeSubscriptionModal();
+        }
+
+        async function openWorkerDetailedProfile(workerId) {
+            try {
+                const res = await fetch(`/api/workers/${workerId}/profile`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const w = data.worker;
+                    document.getElementById('profName').innerText = w.full_name;
+                    document.getElementById('profAvatar').innerText = w.full_name.split(' ').map(n=>n[0]).join('');
+                    document.getElementById('profAgeExp').innerText = `Age: ${w.age || 34} yrs • Experience: ${w.experience_years || 8} yrs`;
+                    document.getElementById('profSociety').innerText = w.society_name;
+                    document.getElementById('profQual').innerText = w.qualification;
+                    document.getElementById('profWelfareId').innerText = w.welfare_id;
+                    document.getElementById('profRatingScore').innerText = `⭐ ${w.rating_avg.toFixed(2)} (${w.completed_jobs} completed jobs)`;
+
+                    const list = document.getElementById('profReviewsList');
+                    list.innerHTML = '';
+                    w.recent_reviews.forEach(r => {
+                        const div = document.createElement('div');
+                        div.className = 'bg-slate-50 p-2.5 rounded-lg border border-slate-200';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-800 text-[11px]">${r.customer_name}</span>
+                                <span class="text-amber-600 font-bold text-[10px]">⭐ ${r.rating}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 mt-0.5">${r.comment}</p>
+                            <span class="text-[9px] text-slate-400">${r.date}</span>
+                        `;
+                        list.appendChild(div);
+                    });
+
+                    document.getElementById('workerProfileModal').classList.remove('hidden');
+                }
+            } catch(err) { console.error("Profile error", err); }
+        }
+        function closeWorkerDetailedProfile() { document.getElementById('workerProfileModal').classList.add('hidden'); }
+
+        function openMoversModal() { document.getElementById('moversModal').classList.remove('hidden'); }
+        function closeMoversModal() { document.getElementById('moversModal').classList.add('hidden'); }
+
+        async function handleMoversEstimate(e) {
+            e.preventDefault();
+            const btn = document.getElementById('movBtn');
+            btn.innerText = 'Calculating from Specs & Photos...';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('home_type', document.getElementById('movHomeType').value);
+            formData.append('distance_km', document.getElementById('movDist').value);
+            formData.append('floor_from', document.getElementById('movFloorFrom').value);
+            formData.append('has_lift_from', document.getElementById('movLiftFrom').checked);
+            formData.append('floor_to', document.getElementById('movFloorTo').value);
+            formData.append('has_lift_to', document.getElementById('movLiftTo').checked);
+
+            const photoInput = document.getElementById('movPhoto');
+            if (photoInput.files && photoInput.files[0]) {
+                formData.append('photo', photoInput.files[0]);
+            }
+
+            try {
+                const res = await fetch('/api/ai/movers-estimate', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    document.getElementById('resTruck').innerText = data.recommended_truck;
+                    document.getElementById('resMovers').innerText = `${data.recommended_movers_count} Certified Movers (Luggage: ~${data.estimated_volume_cft} CFT)`;
+                    document.getElementById('resPhotoNote').innerText = data.photo_verified_note || '';
+                    document.getElementById('resLabor').innerText = `₹${data.price_breakdown.labor_movers_fee}`;
+                    document.getElementById('resTransport').innerText = `₹${data.price_breakdown.transport_truck_fee}`;
+                    document.getElementById('resPacking').innerText = `₹${data.price_breakdown.packing_materials_kit}`;
+                    document.getElementById('resTotal').innerText = `₹${data.price_breakdown.total_estimated_fare}`;
+                    document.getElementById('moversResult').classList.remove('hidden');
+                }
+            } catch(err) { console.error("Movers error", err); }
+            finally {
+                btn.innerText = 'Run AI Luggage & Movers Estimation';
+                btn.disabled = false;
+            }
+        }
+
+        async function viewSocietyGatepass() {
+            if (!activeBookingId) return;
+            const res = await fetch(`/api/bookings/${activeBookingId}/gatepass`);
+            const data = await res.json();
+            if (data.status === 'success') {
+                const g = data.gatepass;
+                document.getElementById('gatepassContent').innerHTML = `
+                    <div class="p-3 bg-indigo-50 border border-indigo-200 rounded-xl space-y-1 text-center">
+                        <span class="text-xs font-bold text-indigo-900 uppercase">MyGate / Society Gatepass</span>
+                        <p class="text-lg font-mono font-black text-indigo-700 tracking-wider">${g.pass_code}</p>
+                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">✓ ${g.society_entry_status}</span>
+                    </div>
+                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1 text-[11px]">
+                        <p><strong>Artisan:</strong> ${g.artisan_name} (${g.trade})</p>
+                        <p><strong>Guild:</strong> ${g.society_guild}</p>
+                        <p><strong>Police Verification:</strong> ${g.police_verification}</p>
+                        <p><strong>Destination:</strong> ${g.destination_address}</p>
+                    </div>
+                `;
+                document.getElementById('gatepassModal').classList.remove('hidden');
+            }
+        }
+        function closeGatepassModal() { document.getElementById('gatepassModal').classList.add('hidden'); }
+
+        async function viewInvoice() {
+            if (!activeBookingId) return;
+            const res = await fetch(`/api/bookings/${activeBookingId}/invoice`);
+            const data = await res.json();
+            if (data.status === 'success') {
+                document.getElementById('invNumber').innerText = data.invoice_number;
+                document.getElementById('invContent').innerHTML = `
+                    <div class="bg-slate-50 p-3 rounded-lg space-y-1 border border-slate-200">
+                        <p><strong>Date:</strong> ${data.date}</p>
+                        <p><strong>Service:</strong> ${data.service_details.category} (${data.service_details.booking_type})</p>
+                        <p><strong>Artisan:</strong> ${data.artisan.name} (${data.artisan.society})</p>
+                        <p><strong>Welfare Reg ID:</strong> ${data.artisan.welfare_id}</p>
+                    </div>
+                    <div class="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center space-x-2">
+                        <span class="text-base">🛡️</span>
+                        <div>
+                            <p class="font-bold text-emerald-950 text-[11px]">${data.warranty_card_id}</p>
+                            <p class="text-[10px] text-emerald-800">${data.warranty_valid_until}</p>
+                        </div>
+                    </div>
+                    <div class="border-t border-b border-slate-200 py-2 space-y-1 font-mono">
+                        <div class="flex justify-between"><span>Base Service Fee:</span><span>₹${data.service_details.base_fare.toFixed(2)}</span></div>
+                        ${data.service_details.urgent_surcharge > 0 ? `<div class="flex justify-between text-rose-600"><span>Urgent SOS Fee:</span><span>₹${data.service_details.urgent_surcharge.toFixed(2)}</span></div>` : ''}
+                        ${data.service_details.long_distance_surcharge > 0 ? `<div class="flex justify-between text-amber-700"><span>Long-Distance Fee (&gt;10km):</span><span>₹${data.service_details.long_distance_surcharge.toFixed(2)}</span></div>` : ''}
+                        ${data.service_details.worker_tip > 0 ? `<div class="flex justify-between text-emerald-700"><span>Artisan Tip (100% Worker):</span><span>₹${data.service_details.worker_tip.toFixed(2)}</span></div>` : ''}
+                        <div class="flex justify-between font-bold text-slate-900 border-t pt-1"><span>Total Paid:</span><span>₹${data.service_details.total_fare.toFixed(2)}</span></div>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg space-y-1 font-mono text-[11px] border border-slate-200">
+                        <p class="font-bold text-slate-800">Cooperative Fund Distribution</p>
+                        <div class="flex justify-between"><span>Direct Artisan Wage (85%):</span><span>₹${data.cooperative_breakdown.worker_take_home.toFixed(2)}</span></div>
+                        <div class="flex justify-between"><span>Cooperative Platform Ops (12%):</span><span>₹${((data.cooperative_breakdown.platform_operations_fee_12pct !== undefined ? data.cooperative_breakdown.platform_operations_fee_12pct : data.cooperative_breakdown.platform_operations_fee_5pct)).toFixed(2)}</span></div>
+                        <div class="flex justify-between"><span>Worker Welfare & Insurance (3%):</span><span>₹${((data.cooperative_breakdown.worker_welfare_insurance_fund_3pct !== undefined ? data.cooperative_breakdown.worker_welfare_insurance_fund_3pct : data.cooperative_breakdown.worker_welfare_insurance_fund_2pct)).toFixed(2)}</span></div>
+                    </div>
+                `;
+                document.getElementById('invoiceModal').classList.remove('hidden');
+            }
+        }
+        function closeInvoiceModal() { document.getElementById('invoiceModal').classList.add('hidden'); }
+
+        function openRatingModal() { document.getElementById('ratingModal').classList.remove('hidden'); }
+        function closeRatingModal() { document.getElementById('ratingModal').classList.add('hidden'); }
+
+        function setRating(val) {
+            currentSelectedRating = val;
+            const labels = ["1 Star - Poor", "2 Stars - Fair", "3 Stars - Good", "4 Stars - Very Good", "5 Stars - Excellent Service"];
+            document.getElementById('ratingText').innerText = labels[val-1];
+            const btns = document.querySelectorAll('.star-btn');
+            btns.forEach((b, i) => {
+                b.className = i < val ? 'star-btn text-amber-600 font-bold' : 'star-btn text-slate-300';
+            });
+        }
+
+        async function submitRating() {
+            if (!activeBookingId) return;
+            const feedback = document.getElementById('feedbackText').value;
+            const res = await fetch(`/api/bookings/${activeBookingId}/rating`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rating: currentSelectedRating, feedback })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToastAlert('Thank you! Your feedback has been recorded in the artisan registry.', 'success');
+                closeRatingModal();
+            }
+        }
+
+        function openDiagnosticModal() { document.getElementById('diagnosticModal').classList.remove('hidden'); }
+        function closeDiagnosticModal() { document.getElementById('diagnosticModal').classList.add('hidden'); }
+
+        function activateDiagnosticVoice() {
+            startVoiceRecognition('diagDesc', (statusText) => {
+                const note = document.getElementById('diagVoiceStatus');
+                if (statusText) {
+                    note.innerText = `🎙️ ${statusText}`;
+                    note.classList.remove('hidden');
+                } else {
+                    note.classList.add('hidden');
+                }
+            });
+        }
+
+        async function handleDiagnosticSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('diagBtn');
+            btn.innerText = 'Analyzing with AI Model...';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('description', document.getElementById('diagDesc').value);
+            formData.append('category', document.getElementById('diagCat').value);
+            const imgInput = document.getElementById('diagImg');
+            if (imgInput.files && imgInput.files[0]) {
+                formData.append('image', imgInput.files[0]);
+            }
+
+            try {
+                const res = await fetch('/api/ai/diagnose', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    document.getElementById('diagIssue').innerText = data.identified_issue;
+                    document.getElementById('diagSeverity').innerText = data.severity_level;
+                    document.getElementById('diagLabor').innerText = `₹${data.pre_estimate.standard_labor_fee}`;
+                    document.getElementById('diagParts').innerText = `₹${data.pre_estimate.wholesale_parts_cost} (${data.recommended_parts.join(', ')})`;
+                    document.getElementById('diagTotal').innerText = `₹${data.pre_estimate.total_estimated_fare}`;
+                    document.getElementById('diagSafety').innerText = data.safety_instructions;
+                    document.getElementById('diagResultContainer').classList.remove('hidden');
+                }
+            } catch(err) { console.error("Diagnostic err", err); }
+            finally {
+                btn.innerText = 'Run AI Diagnostic & Generate Cost Pre-Estimate';
+                btn.disabled = false;
+            }
+        }
+
+        async function openPartsModal() {
+            document.getElementById('partsModal').classList.remove('hidden');
+            const res = await fetch('/api/ai/parts-index');
+            const data = await res.json();
+            const tbody = document.getElementById('partsTableBody');
+            tbody.innerHTML = '';
+            data.parts.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50';
+                tr.innerHTML = `
+                    <td class="p-2"><p class="font-bold text-slate-900">${p.name}</p><p class="text-[10px] text-slate-500">${p.spec} • ${p.category}</p></td>
+                    <td class="p-2 text-right text-slate-400 line-through">₹${p.mrp}</td>
+                    <td class="p-2 text-right font-bold text-emerald-800">₹${p.coop_price}</td>
+                    <td class="p-2 text-center text-[10px] text-slate-600">${p.warranty_months} Mo</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        function closePartsModal() { document.getElementById('partsModal').classList.add('hidden'); }
+    </script>
+
+    <!-- POPPING NOTIFICATION MODAL: WORKER CANCELLATION (Zero Fine for Citizen) -->
+    <div id="workerCancelledModal" class="fixed inset-0 bg-slate-900/75 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl space-y-4 border-2 border-rose-500 text-xs animate-bounce-short">
+            <div class="flex items-center space-x-3 text-rose-600">
+                <span class="text-3xl">⚠️</span>
+                <div>
+                    <h3 class="font-black text-slate-900 text-sm">Service Request Cancelled by Artisan</h3>
+                    <p class="text-[10px] text-slate-500">Cooperative Dispatch Alert</p>
+                </div>
+            </div>
+            <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-slate-700">
+                <p class="font-bold text-rose-900">Reason reported by artisan:</p>
+                <p id="workerCancelReasonText" class="text-xs italic text-rose-800 bg-white/80 p-2.5 rounded-lg border border-rose-200 font-medium">Artisan reported vehicle breakdown / emergency.</p>
+                <div class="pt-1.5 text-[11px] text-emerald-800 font-bold flex items-center space-x-1.5">
+                    <span>✓</span>
+                    <span>Zero Cancellation Penalty charged to you. 100% fare protected.</span>
+                </div>
+            </div>
+            <p class="text-slate-600 leading-relaxed">The cooperative dispatch platform is ready to automatically re-route your request or connect you with another verified artisan nearby.</p>
+            <div class="pt-2 border-t border-slate-100 flex items-center space-x-2">
+                <button onclick="handleAcknowledgeWorkerCancel()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg transition shadow text-xs flex items-center justify-center space-x-1">
+                    <span>🔍 Find Another Verified Artisan</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

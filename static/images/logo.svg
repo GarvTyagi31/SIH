@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <!-- Background Circle -->
+  <circle cx="250" cy="250" r="240" fill="#FBF9F5" stroke="#163A5F" stroke-width="12" />
+  <circle cx="250" cy="250" r="226" fill="none" stroke="#D18700" stroke-width="3" stroke-dasharray="6,6" />
+  <circle cx="250" cy="250" r="218" fill="#FFFFFF" stroke="#0E4B3E" stroke-width="4" />
+
+  <!-- Curved Text Paths -->
+  <defs>
+    <path id="topTextPath" d="M 70 250 A 180 180 0 0 1 430 250" />
+    <path id="bottomTextPath" d="M 430 250 A 180 180 0 0 1 70 250" />
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#48A060" />
+      <stop offset="100%" stop-color="#1B633E" />
+    </linearGradient>
+    <linearGradient id="handGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DDA15E" />
+      <stop offset="100%" stop-color="#BC6C25" />
+    </linearGradient>
+    <linearGradient id="handGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2D6A4F" />
+      <stop offset="100%" stop-color="#1B4332" />
+    </linearGradient>
+  </defs>
+
+  <!-- Top Text -->
+  <text font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="15" font-weight="800" fill="#163A5F" letter-spacing="4px">
+    <textPath href="#topTextPath" startOffset="50%" text-anchor="middle">
+      COMMUNITY • COOPERATION • GROWTH • EMPOWERMENT
+    </textPath>
+  </text>
+
+  <!-- Inner Decorative Circle Ring -->
+  <circle cx="250" cy="215" r="145" fill="#F4F8F5" stroke="#1D4A6E" stroke-width="6" />
+
+  <!-- Hands Circling Arch -->
+  <!-- Left/Top Hand Arm -->
+  <path d="M 125 240 C 120 160, 180 100, 250 95 C 290 92, 330 110, 355 135 C 340 145, 320 130, 280 120 C 220 110, 165 150, 155 220 Z" fill="url(#handGrad1)" opacity="0.95" />
+  <!-- Right/Bottom Hand Arm -->
+  <path d="M 375 220 C 380 290, 320 345, 250 350 C 200 355, 150 330, 135 305 C 155 295, 185 315, 230 325 C 290 335, 350 290, 355 220 Z" fill="url(#handGrad2)" opacity="0.95" />
+
+  <!-- Center Tree Sprout of Growth -->
+  <path d="M 250 250 L 250 170" stroke="#493829" stroke-width="7" stroke-linecap="round" />
+  <!-- Center Main Leaf -->
+  <path d="M 250 125 C 235 150, 240 175, 250 190 C 260 175, 265 150, 250 125 Z" fill="url(#leafGrad)" />
+  <!-- Side Leaves -->
+  <path d="M 250 160 C 220 145, 205 160, 210 180 C 225 180, 240 170, 250 165 Z" fill="url(#leafGrad)" />
+  <path d="M 250 160 C 280 145, 295 160, 290 180 C 275 180, 260 170, 250 165 Z" fill="url(#leafGrad)" />
+  <path d="M 250 185 C 215 180, 200 200, 215 215 C 230 210, 245 195, 250 190 Z" fill="url(#leafGrad)" />
+  <path d="M 250 185 C 285 180, 300 200, 285 215 C 270 210, 255 195, 250 190 Z" fill="url(#leafGrad)" />
+  
+  <!-- Golden Grain Droplets -->
+  <circle cx="215" cy="135" r="5.5" fill="#E9C46A" />
+  <circle cx="285" cy="135" r="5.5" fill="#E9C46A" />
+  <circle cx="250" cy="105" r="6" fill="#E9C46A" />
+
+  <!-- Diverse Community People Silhouettes -->
+  <!-- Person 1 (Left Teal) -->
+  <circle cx="195" cy="225" r="10" fill="#2A6F62" />
+  <path d="M 180 260 C 180 242, 190 238, 195 238 C 200 238, 210 242, 210 260 Z" fill="#2A6F62" />
+  <path d="M 195 242 L 230 225" stroke="#2A6F62" stroke-width="4" stroke-linecap="round" />
+
+  <!-- Person 2 (Center Blue) -->
+  <circle cx="235" cy="235" r="11" fill="#1F567A" />
+  <path d="M 220 275 C 220 252, 228 248, 235 248 C 242 248, 250 252, 250 275 Z" fill="#1F567A" />
+  <path d="M 235 250 L 250 210" stroke="#1F567A" stroke-width="4" stroke-linecap="round" />
+
+  <!-- Person 3 (Right Amber) -->
+  <circle cx="270" cy="238" r="10.5" fill="#D98A2B" />
+  <path d="M 255 275 C 255 255, 262 250, 270 250 C 278 250, 285 255, 285 275 Z" fill="#D98A2B" />
+  <path d="M 270 252 L 255 210" stroke="#D98A2B" stroke-width="4" stroke-linecap="round" />
+
+  <!-- Person 4 (Far Right Orange) -->
+  <circle cx="305" cy="228" r="10" fill="#C05C32" />
+  <path d="M 290 265 C 290 245, 300 240, 305 240 C 310 240, 320 245, 320 265 Z" fill="#C05C32" />
+  <path d="M 305 242 L 275 228" stroke="#C05C32" stroke-width="4" stroke-linecap="round" />
+
+  <!-- Bottom Banner Plaque -->
+  <rect x="75" y="325" width="350" height="95" rx="16" fill="#FFFFFF" stroke="#163A5F" stroke-width="6" />
+  <path d="M 85 335 L 415 335" stroke="#E9C46A" stroke-width="2" />
+  
+  <!-- SAHAKAR Text in Banner -->
+  <text x="250" y="375" font-family="'Outfit', 'Plus Jakarta Sans', Arial, sans-serif" font-size="44" font-weight="900" fill="#163A5F" text-anchor="middle" letter-spacing="4px">
+    SAHAKAR
+  </text>
+  <text x="250" y="405" font-family="'Outfit', 'Plus Jakarta Sans', Arial, sans-serif" font-size="20" font-weight="800" fill="#1B4332" text-anchor="middle" letter-spacing="6px">
+    PROJECT
+  </text>
+
+  <!-- Tagline below Banner -->
+  <text x="250" y="438" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="12" font-weight="800" fill="#163A5F" text-anchor="middle" letter-spacing="2px">
+    TOGETHER WE THRIVE | EST. 2024
+  </text>
+
+  <!-- Bottom Arch Text -->
+  <text font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="13" font-weight="800" fill="#163A5F" letter-spacing="3px">
+    <textPath href="#bottomTextPath" startOffset="50%" text-anchor="middle">
+      SUSTAINABILITY • PROGRESS • HARMONY
+    </textPath>
+  </text>
+</svg>
