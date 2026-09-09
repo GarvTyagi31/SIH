@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from database import init_db
-from routers import workers, bookings, admin, ai_bot, auth
+from routers import workers, bookings, admin, ai_bot, auth, service_booking
 
 app = FastAPI(
     title="SahakarConnect - Official Ghaziabad Cooperative Artisan & Citizen Service Portal",
@@ -51,6 +51,7 @@ def render_template(request: Request, template_name: str, context: dict = None):
 app.include_router(auth.router)
 app.include_router(workers.router)
 app.include_router(bookings.router)
+app.include_router(service_booking.router)
 app.include_router(admin.router)
 app.include_router(ai_bot.router)
 
